@@ -1,0 +1,25 @@
+projects/*
+!projects/.gitkeep
+.claude/settings.local.json
+.DS_Store
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+._*
+.Trashes
+Thumbs.db
+ehthumbs.db
+
+# Environment Variables / Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/

@@ -1,0 +1,24 @@
+{
+  "language": "korean",
+  "outputStyle": "concise-korean",
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git pull*)",
+      "Bash(git remote *)",
+      "Bash(git clone *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(* --version)",
+      "Bash(* --help *)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(sudo *)",
+      "Bash(git push --force*)"
+    ],
+    "defaultMode": "default"
+  }
+}
