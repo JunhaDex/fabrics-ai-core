@@ -3,6 +3,11 @@ projects/*
 .claude/settings.local.json
 .DS_Store
 
+# 로컬 전용 설정 (기기/워크스페이스마다 다른 운영 정보, 커밋 대상 아님)
+*.local.json
+tools/slack-worker/state/
+__pycache__/
+
 # IDE / Editor
 .idea/
 .vscode/

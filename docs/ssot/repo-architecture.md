@@ -26,6 +26,40 @@
 - `docs/PROJECTS.md`에 저장소 URL을 기록해, 다른 기기에서도 어떤 프로젝트를
   어디서 clone해야 하는지 알 수 있게 한다.
 
+#### 프로젝트 CLAUDE.md 필수 구성
+루트 CLAUDE.md의 "조직 공통 원칙"이 말하는 "상속"은 문서로만 안내하는 것이
+아니라, 프로젝트 자체 `CLAUDE.md`에 아래 3줄을 실제로 추가해 Claude Code가
+런타임에 로드하도록 만드는 것을 뜻한다.
+```
+@../../CLAUDE.md
+@../../docs/ssot/org-principles.md
+@../../docs/ssot/repo-architecture.md
+```
+이렇게 하면 별도 승인 절차 없이(헤드리스 모드 기준 확인됨) 조직 원칙이
+항상 컨텍스트에 포함된다.
+
+#### 프로젝트 격리 규칙
+`tools/slack-worker`처럼 여러 프로젝트를 넘나들며 무인으로 파일을 수정할
+수 있는 도구가 있는 경우, 각 프로젝트의 `.claude/settings.json`에 아래
+권한 규칙을 추가해 프로젝트 밖(다른 프로젝트, SSOT 문서 등) 수정을 막는다.
+```json
+{
+  "permissions": {
+    "deny": ["Edit(../**)", "Write(../**)"]
+  }
+}
+```
+이 두 구성(`@import` + 격리 규칙)은 `.claude/skills/new-project/SKILL.md`의
+스캐폴딩 단계에서 자동으로 반영된다.
+
+### 3. 조직 도구 (org tooling)
+fabrics 업무 산출물이 아니라, 메타 저장소 자체의 운영을 보조하는 도구
+(예: `slack-worker`)는 `tools/<name>/` 경로에 두고 메타 저장소의 git
+히스토리에 직접 포함한다. `projects/<name>/`과 달리 독립 저장소로 분리하지
+않는다. 결정 근거는 `docs/ssot/decisions/0001-org-tooling-in-control-repo.md`
+참고. 토큰/API 키 등 민감 정보는 `.env`(아래 `.gitignore` 핵심의 패턴으로
+보호됨) 또는 `secrets/`에 두고, 실제 값 대신 `.env.example`만 커밋한다.
+
 ### 왜 git submodule을 쓰지 않는가
 submodule은 커밋 해시를 고정(pin)하는 방식이라 "정확한 버전이 고정된 라이브러리
 의존성"에 적합하다. 프로젝트 간 버전 고정이 필요 없는 이 구조에서는 detached
@@ -50,6 +84,8 @@ HEAD, 동기화 실수 같은 submodule 특유의 마찰만 늘어난다. 대신
 2. `docs/PROJECTS.md`를 읽고, 이 기기에서 작업할 프로젝트를 선택한다.
 3. 선택한 프로젝트만 `projects/<name>/`에 개별 clone한다.
 4. 루트에서 Claude Code를 실행해 `CLAUDE.md`가 정상적으로 로드되는지 확인한다.
+5. `tools/slack-worker`를 쓰는 경우, `tools/slack-worker/README.md`를 따라
+   로컬 전용 파일(`.env`, `channels.local.json`)을 채운다.
 
 자동화 스크립트로 만들 수도 있지만, 프로젝트마다 상황이 달라 지금은 수동
 체크리스트로 유지한다. 필요성이 명확해지면 그때 스크립트화를 검토한다.
@@ -60,6 +96,8 @@ projects/*
 !projects/.gitkeep
 .claude/settings.local.json
 .DS_Store
+*.local.json
+tools/slack-worker/state/
 ```
 
 ## 민감정보 처리
