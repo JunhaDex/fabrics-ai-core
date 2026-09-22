@@ -1,7 +1,9 @@
 # ADR 0003: 프로젝트 격리에 명시적 permission deny를 쓰지 않는다
 
 ## 상태
-승인됨 (2026-09-22)
+승인됨 (2026-09-22). 일부 보완됨: "settings.json을 만들지 않는다"는
+`0004-todo-two-scopes-in-one-file.md`로 대체되었다(`additionalDirectories`만
+담아 생성). deny 규칙을 두지 않는다는 결정은 유지된다.
 
 ## 배경
 `repo-architecture.md`는 프로젝트 `.claude/settings.json`에

@@ -19,9 +19,10 @@ CLAUDE.md의 "가이드 우선(Guide, not Generate)" 원칙을 따른다. 사용
 - CodeButler 봇을 해당 채널에 초대 (`/invite @CodeButler`)
 
 체크리스트를 안내한 직후, 루트 `docs/<name>-todo.md`를 생성한다. 이 파일은
-프로젝트 todo의 정본이며, 프로젝트 세션도 이 파일을 갱신한다
-(`docs/TODO.md`의 "프로젝트 todo 파일" 절 참고). 초기 내용은 프로젝트 이름,
-목적 한 줄, 상태(부트스트랩 1단계), 사용자의 다음 행동(3단계 체크리스트)이다.
+프로젝트 todo의 정본이며, 프로젝트 세션도 이 파일을 갱신한다. 구조와 절별
+규칙은 `docs/TODO.md`의 "프로젝트 todo 파일" 절을 따른다. 초기에는 헤더(이름,
+저장소, 목적), "결정 사항", "진행 중: v0.1 최초 골격"(3단계 체크리스트를 세부
+step으로), "미확정 사항"만 채우고, "다음 버전 (계획)"과 "완료"는 빈 절로 둔다.
 
 ## 2단계: 스택 확인 및 공식 문서 가이드
 
@@ -39,6 +40,8 @@ grill me로 확정된 결정과 미확정 사항은 `docs/<name>-todo.md`에 누
 사용자가 아래를 직접 완료한다.
 
 - `projects/<name>/`에 로컬 프로젝트 생성 (공식 문서 기준)
+- CHANGELOG 생성기 설정 (`docs/ssot/repo-architecture.md` "버전·변경 이력"):
+  라이브러리는 `changeset init`, 앱은 `git cliff --init` 으로 `cliff.toml` 생성
 - Slack 채널 생성 및 봇 초대
 - first commit
 - 원격 저장소로 push
@@ -56,21 +59,33 @@ grill me로 확정된 결정과 미확정 사항은 `docs/<name>-todo.md`에 누
   @../../docs/ssot/repo-architecture.md
   ```
 - `CLAUDE.md`에 프로젝트 고유 규칙(스택, 구조, 도메인 규칙)을 기술한다.
-  todo 성격의 내용(미확정 사항, 다음 작업)은 CLAUDE.md에 두지 않고
-  `docs/<name>-todo.md`에 둔다. 대신 CLAUDE.md에 아래 한 줄을 추가한다.
+  todo 성격의 내용(미확정 사항, 다음 작업, 진행 상황)은 CLAUDE.md에 두지 않고
+  `docs/<name>-todo.md`에 둔다. 대신 CLAUDE.md에 아래 절을 추가한다.
   ```
-  작업이 진행되면 루트 `../../docs/<name>-todo.md`를 갱신한다 (최종 결정 사항만 기록).
+  ## todo 관리
+  작업이 진행되면 루트 `../../docs/<name>-todo.md`를 실시간으로 갱신한다.
+  구조와 릴리스 시 처리는 `../../docs/TODO.md`의 "프로젝트 todo 파일" 절을 따른다.
+  시행착오는 기록하지 않고 최종 결정만 남긴다.
   ```
-- `.claude/settings.json`은 만들지 않는다. 프로젝트 밖 수정은 Claude Code의
-  작업 디렉터리 경계가 막으며, 명시적 permission deny는 두지 않는다
-  (`docs/ssot/decisions/0003-no-explicit-permission-deny.md`).
+- `.claude/settings.json`을 아래 내용만으로 생성한다. 루트 `docs/`를
+  프로젝트 세션에 열어 todo 갱신과 SSOT 읽기를 허용하기 위해서다.
+  permission deny 규칙은 두지 않는다
+  (`docs/ssot/decisions/0003-no-explicit-permission-deny.md`,
+  `docs/ssot/decisions/0004-todo-two-scopes-in-one-file.md`).
+  ```json
+  {
+    "permissions": {
+      "additionalDirectories": ["../../docs"]
+    }
+  }
+  ```
 
 ## 5단계: 루트 색인·SSOT·브릿지 갱신
 
 동시에 아래를 갱신한다 (필요한 항목만, 없으면 생략).
 
-- `docs/<name>-todo.md`: 상태를 "구축중"으로 바꾸고, 골격 생성 체크리스트와
-  미확정 사항을 다음 행동으로 정리한다
+- `docs/<name>-todo.md`: "진행 중: v0.1 최초 골격" 절의 핵심 기능과 세부
+  step을 확정하고, 미확정 사항을 정리한다
 - `docs/PROJECTS.md`: 신규 행 추가, 상태 "구축중"
 - `CLAUDE.md`의 "프로젝트 색인" 표: 요약 반영
 - `tools/slack-worker/channels.local.json`에 `{채널ID: "<name>"}` 추가
