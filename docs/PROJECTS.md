@@ -7,6 +7,7 @@
 | 프로젝트 | 상태 | 저장소 URL | 로컬 경로 | 한 줄 설명 | 관련 SSOT |
 |---|---|---|---|---|---|
 | _(예시) inventory-system | 기획 | (미정) | `projects/inventory-system/` | 원단 재고 실시간 추적 | — |
+| common-design | 구축중 | https://github.com/JunhaDex/fabrics-design-system | `projects/common-design/` | 테마(빌드)·모드(런타임) 2층위 스타일을 지원하는 fabrics 공통 디자인 시스템 (React, Radix, Tailwind v4, npm) | — |
 
 ## 상태 값 정의
 - **기획**: 루트 세션에서 구조/요구사항을 논의 중. 아직 별도 저장소 없음.
