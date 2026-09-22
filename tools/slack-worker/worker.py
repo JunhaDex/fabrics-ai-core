@@ -4,13 +4,17 @@ import json
 import os
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
+from slack_sdk.errors import SlackApiError
 
 load_dotenv(override=True)
+
+LOADING_EMOJI = os.environ.get("SLACK_LOADING_EMOJI", "loading")
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 STATE_FILE = Path(__file__).resolve().parent / "state" / "threads.json"
@@ -130,7 +134,31 @@ def parse_resume_tokens(text: str) -> tuple[str, str | None]:
     return text.strip(), resume_id
 
 
-def process(thread_ts: str, text: str, say, project_dir: Path, project_name: str, resume_id: str | None = None):
+def add_reaction(client, channel_id: str, msg_ts: str) -> None:
+    try:
+        client.reactions_add(channel=channel_id, name=LOADING_EMOJI, timestamp=msg_ts)
+    except SlackApiError as e:
+        print(f"reactions_add 실패: {e.response.get('error')}", file=sys.stderr)
+
+
+def remove_reaction(client, channel_id: str, msg_ts: str) -> None:
+    try:
+        client.reactions_remove(channel=channel_id, name=LOADING_EMOJI, timestamp=msg_ts)
+    except SlackApiError as e:
+        print(f"reactions_remove 실패: {e.response.get('error')}", file=sys.stderr)
+
+
+def process(
+    thread_ts: str,
+    text: str,
+    say,
+    project_dir: Path,
+    project_name: str,
+    channel_id: str,
+    msg_ts: str,
+    client,
+    resume_id: str | None = None,
+):
     state = load_state()
     entry = state.get(thread_ts)
     is_first_in_thread = entry is None
@@ -138,20 +166,24 @@ def process(thread_ts: str, text: str, say, project_dir: Path, project_name: str
     if resume_id is None and entry:
         resume_id = entry["session_id"]
 
-    session_id, result_text = run_claude(text, project_dir, resume_id=resume_id)
-    final_id = session_id or resume_id
+    add_reaction(client, channel_id, msg_ts)
+    try:
+        session_id, result_text = run_claude(text, project_dir, resume_id=resume_id)
+        final_id = session_id or resume_id
 
-    if final_id:
-        state[thread_ts] = {"session_id": final_id, "project": project_name}
-        save_state(state)
+        if final_id:
+            state[thread_ts] = {"session_id": final_id, "project": project_name}
+            save_state(state)
 
-    if is_first_in_thread and final_id:
-        files = referenced_files(project_dir / "CLAUDE.md")
-        verb = "세션 재개" if resume_id else "세션 시작"
-        header = f"{verb}: `{final_id}`\n참조 파일: {', '.join(files)}"
-        say(text=f"{header}\n\n{result_text}", thread_ts=thread_ts)
-    else:
-        say(text=result_text, thread_ts=thread_ts)
+        if is_first_in_thread and final_id:
+            files = referenced_files(project_dir / "CLAUDE.md")
+            verb = "세션 재개" if resume_id else "세션 시작"
+            header = f"{verb}: `{final_id}`\n참조 파일: {', '.join(files)}"
+            say(text=f"{header}\n\n{result_text}", thread_ts=thread_ts)
+        else:
+            say(text=result_text, thread_ts=thread_ts)
+    finally:
+        remove_reaction(client, channel_id, msg_ts)  # 타임아웃/실패 시에도 반응 제거
 
 
 def unmapped_channel_notice(channel_id: str) -> str:
@@ -162,7 +194,7 @@ def unmapped_channel_notice(channel_id: str) -> str:
 
 
 @app.event("app_mention")
-def handle_mention(event, say):
+def handle_mention(event, say, client):
     text = re.sub(r"<@[^>]+>", "", event["text"]).strip()
     thread_ts = event.get("thread_ts", event["ts"])
     channel_id = event["channel"]
@@ -182,11 +214,14 @@ def handle_mention(event, say):
             return
         text, resume_id = parse_resume_tokens(text)
 
-    process(thread_ts, text, say, project_dir_for(project_name), project_name, resume_id=resume_id)
+    process(
+        thread_ts, text, say, project_dir_for(project_name), project_name,
+        channel_id=channel_id, msg_ts=event["ts"], client=client, resume_id=resume_id,
+    )
 
 
 @app.event("message")
-def handle_message(event, say):
+def handle_message(event, say, client):
     if event.get("subtype") is not None or event.get("bot_id"):
         return  # message_changed/deleted, 봇 메시지(자신 포함) 무시
     thread_ts = event.get("thread_ts")
@@ -206,7 +241,10 @@ def handle_message(event, say):
         reset_thread(thread_ts, say)
         return
 
-    process(thread_ts, text, say, project_dir_for(entry["project"]), entry["project"])
+    process(
+        thread_ts, text, say, project_dir_for(entry["project"]), entry["project"],
+        channel_id=event["channel"], msg_ts=event["ts"], client=client,
+    )
 
 
 if __name__ == "__main__":

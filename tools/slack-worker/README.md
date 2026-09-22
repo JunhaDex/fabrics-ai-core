@@ -24,12 +24,17 @@ Slack 멘션으로 Claude Code를 원격 트리거하는 조직 도구(org tooli
    - `chat:write`
    - `channels:history` (공개 채널) 또는 `groups:history` (비공개 채널)
      — 스레드 내 무멘션 후속 메시지 인식에 필요
+   - `reactions:write` — 질문 메시지에 처리 중 반응(`:loading:`)을 달고
+     답변 후 제거하는 데 필요
 4. 좌측 메뉴 "Event Subscriptions" → 활성화 → Subscribe to bot events에 추가
    - `app_mention`
    - `message.channels` (또는 `message.groups`)
 5. "Install App" → 워크스페이스에 설치 → `xoxb-...` Bot User OAuth Token을
    `.env`의 `SLACK_BOT_TOKEN`으로 쓴다.
 6. 프로젝트 전용 채널을 만들고 `/invite @<봇이름>`으로 초대한다.
+7. 워크스페이스 설정 → Customize → Emoji에서 `assets/loading.gif`를 이름
+   `loading`으로 등록한다. 다른 이름을 쓰려면 `.env`의
+   `SLACK_LOADING_EMOJI`로 지정한다.
 
 ## 2. `.env` 작성
 
@@ -37,9 +42,11 @@ Slack 멘션으로 Claude Code를 원격 트리거하는 조직 도구(org tooli
 ```
 SLACK_BOT_TOKEN=xoxb-...
 SLACK_APP_TOKEN=xapp-...
+SLACK_LOADING_EMOJI=loading
 ```
 루트 `.gitignore`로 커밋 제외된다. `.env.example`(빈 값)을 복사해 1번에서
-발급받은 값을 채운다.
+발급받은 값을 채운다. `SLACK_LOADING_EMOJI`는 선택값으로, 생략하면
+`loading`을 사용한다.
 
 ## 3. `channels.local.json` 작성
 
@@ -150,3 +157,5 @@ rm ~/Library/LaunchAgents/com.fabrics.slack-worker.plist
   `claude -p`를 서브프로세스로 실행하고 결과를 스레드에 회신한다.
 - `state/threads.json` — `{thread_ts: {session_id, project}}` 매핑
   (런타임 상태, `.gitignore`의 `tools/slack-worker/state/`로 커밋 제외됨)
+- `assets/loading.gif` — 처리 중 반응용 커스텀 이모지 원본. 1단계 7번에서
+  워크스페이스에 등록한다.
