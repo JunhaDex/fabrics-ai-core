@@ -56,6 +56,7 @@
 | `docs/ssot/decisions/` | ADR (아키텍처/조직 의사결정 기록) |
 | `docs/PROJECTS.md` | 프로젝트 레지스트리 (정본) |
 | `docs/TODO.md` | 루트 세션 메타 작업 트래커 (SSOT 아님) |
+| `docs/<name>-todo.md` | 프로젝트별 todo 파일. 최종 결정 사항과 다음 행동만 기록 (SSOT 아님) |
 
 ## 프로젝트 색인
 정본은 `docs/PROJECTS.md`. 이 표는 요약만 유지한다.

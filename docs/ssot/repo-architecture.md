@@ -14,7 +14,7 @@
 `0_pjt_fabrics/` 자체가 하나의 작고 독립적인 git 저장소다. 여기에는 다음만 포함한다.
 - `CLAUDE.md`, `.claude/`
 - `docs/ssot/*`
-- `docs/PROJECTS.md`
+- `docs/PROJECTS.md`, `docs/TODO.md`, `docs/<name>-todo.md` (프로젝트별 todo 파일)
 
 비공개(private) 원격 저장소(GitHub/GitLab 등)에 두고, 각 로컬 기기에서 동일
 경로(`0_pjt_fabrics/`)로 clone한다.
@@ -38,18 +38,16 @@
 이렇게 하면 별도 승인 절차 없이(헤드리스 모드 기준 확인됨) 조직 원칙이
 항상 컨텍스트에 포함된다.
 
-#### 프로젝트 격리 규칙
-`tools/slack-worker`처럼 여러 프로젝트를 넘나들며 무인으로 파일을 수정할
-수 있는 도구가 있는 경우, 각 프로젝트의 `.claude/settings.json`에 아래
-권한 규칙을 추가해 프로젝트 밖(다른 프로젝트, SSOT 문서 등) 수정을 막는다.
-```json
-{
-  "permissions": {
-    "deny": ["Edit(../**)", "Write(../**)"]
-  }
-}
-```
-이 두 구성(`@import` + 격리 규칙)은 `.claude/skills/new-project/SKILL.md`의
+#### 프로젝트 격리
+프로젝트 세션이 프로젝트 밖(다른 프로젝트, SSOT 문서 등)을 수정하는 것은
+Claude Code의 **작업 디렉터리 경계**가 막는다(작업 디렉터리 밖 파일은 별도
+승인 없이는 읽기·쓰기가 되지 않는다). 프로젝트 `.claude/settings.json`에
+명시적인 permission deny 규칙은 두지 않는다. 상대 경로 deny 패턴은 상위
+디렉터리를 매칭하지 못해 실효가 없고, 루트 `docs/<name>-todo.md` 갱신처럼
+의도된 상위 디렉터리 쓰기까지 막게 되기 때문이다. 결정 근거는
+`docs/ssot/decisions/0003-no-explicit-permission-deny.md` 참고.
+
+프로젝트 CLAUDE.md의 `@import` 구성은 `.claude/skills/new-project/SKILL.md`의
 스캐폴딩 단계에서 자동으로 반영된다.
 
 ### 3. 조직 도구 (org tooling)
