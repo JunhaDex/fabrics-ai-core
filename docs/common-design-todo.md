@@ -36,38 +36,6 @@
 - catalog의 `typescript`는 `~6.0.0`으로 고정한다. typescript-eslint의 peer 범위가 `>=4.8.4 <6.1.0`이라 6.1이 나오면 벗어난다
 - Toast: Radix Toast 프리미티브 + 자체 명령형 API(`toast.success(…)` + `<ToastProvider>`)로 구현한다. sonner를 쓰지 않는 이유는 (1) Toast는 Radix에 이미 있고 "Radix에 없는 것만 외부로 채운다"는 기준에 걸리며 (2) sonner가 컨테이너 위치·스택·모션 CSS를 소유해 테마 교체와 충돌하고 (3) shadcn이 Radix toast를 deprecate한 근거(큐 관리 보일러플레이트를 사용자 저장소에 떠넘기는 문제)가 라이브러리 저자에게는 해당하지 않기 때문. Radix Toast는 상류에서 deprecate되지 않았다(2026-09-22 공식 문서 확인)
 
-## 진행 중: v0.2 폼/피드백
-- 컨텍스트: DoD를 적용하는 첫 버전. 컴포넌트 18개를 쌓아 v0.5의 추가 테마가 검증할 슬롯 표면을 만든다. Calendar/DatePicker는 제외되어 외부 의존 0을 유지한다
-- 핵심 기능 (모두 완료되면 릴리스):
-  - [x] 선행 인프라 4건 (DoD를 실제로 강제할 수 있는 상태 만들기)
-  - [x] 기반 레이어 2건 (아이콘, 모션 토큰)
-  - [x] 폼 11종
-  - [x] 피드백 7종
-- 세부 step:
-  - 선행 인프라
-    - [x] ESLint + Prettier 공통 설정 도입, oxlint 제거 (`packages/eslint-config`). 린트 대상이 `apps/storybook` 한 곳에서 `core`까지 넓어졌고 포매터가 처음 생겼다
-    - [x] `a11y.test`를 `'todo'` → `'error'`로 전환. 기존 스토리는 수정 없이 통과했고, axe가 실제로 게이트 역할을 하는지 의도적 위반(image-alt)으로 확인했다
-    - [x] Button에 `play` 상호작용 테스트 추가. Primary(클릭→onClick 1회)와 Disabled 스토리 신설(강제 클릭으로 핸들러 미호출 검증). Button이 DoD 3요건을 모두 충족하는 첫 컴포넌트가 되었다
-    - [x] PR CI 워크플로 신설(`.github/workflows/ci.yml`). format/lint/typecheck/build/test를 PR에서만 돌린다(main은 squash merge 결과라 중복). playwright 설치는 `--filter fabrics-storybook`로 실행해야 한다 — pnpm strict 레이아웃에서 루트는 resolve하지 못한다
-    - [x] Storybook decorator Portal 대응. 면·전경색을 래퍼 div가 아니라 `index.css`의 `body`에 건다
-  - 기반 레이어
-    - [x] 아이콘: `lucide` catalog 추가, `<Icon node size />` 렌더러 구현·export. 기본 크기는 `1em`(주변 글자 크기를 따라가므로 별도 크기 토큰이 불필요). `aria-label`이 없으면 `aria-hidden`, 있으면 `role="img"`
-    - [x] 모션: 원시 `primitives/motion.json` + 의미 슬롯 `sem.duration.*`·`sem.ease.*`. 브리지가 duration 슬롯에 한해 `@utility`를 출력하도록 확장, `src/motion.css`에 enter/exit `@keyframes` + `--animate-*`, `dist/reduced-motion.css`로 `prefers-reduced-motion` 처리(테마 값보다 뒤에 병합해야 이긴다)
-  - 폼 11종
-    - [x] Label(Radix Label.Root), Input(size 3종), Textarea(`tv({ extend: input })`)
-    - [x] Field — `useId`로 컨트롤 id를 만들어 레이블과 잇고, 설명/오류를 `aria-describedby`로 묶는다. `cloneElement`로 children에 주입한다
-    - [x] Checkbox, Switch(둘 다 오른쪽 `label` prop. Field 안에서는 생략), RadioGroup(`options` 배열)
-    - [x] Select(options 배열, Portal + animate-enter/exit), Slider(손잡이 개수 = value 길이, `sem.color.track` 슬롯 추가)
-    - [x] Toggle, ToggleGroup(항목 스타일 공유. `type` 판별 유니온 유지를 위해 분배되는 Omit 사용)
-  - 피드백 7종
-    - [x] Alert (tone 4종. danger는 role=alert, 나머지는 role=status)
-    - [x] Toast — Radix Toast + `useSyncExternalStore` 큐 store + 명령형 `toast()` + `<ToastProvider>`. 동시 3개 제한, 중복 병합 없음. 메서드는 `toast.danger`(라이브러리 어휘 통일)
-    - [x] Tooltip(Provider 내장, `surface-inverse` 슬롯 추가), Popover(상호작용 가능, 포커스 트랩)
-    - [x] Progress(track 슬롯 공유), Spinner(currentColor), Skeleton(감싼 영역이 role=status + aria-busy로 상태를 알린다)
-  - [x] changeset 작성 → PR #3 생성, CI 통과
-  - [ ] PR squash merge → 릴리스 PR 자동 생성 → 병합 시 publish·태그
-- 다음 행동: PR #3(https://github.com/JunhaDex/fabrics-design-system/pull/3)을 squash merge한다. 병합하면 changesets가 릴리스 PR을 만들고, 그 PR을 병합할 때 publish와 `v0.2.0` 태그가 실행된다. 이후 이 파일의 '진행 중' 절을 '완료'로 옮긴다
-
 ## 다음 버전 (계획)
 - v0.3 데이터 표시: Table(정적), DataTable(정렬·선택·페이지네이션), Tabs, Accordion, Badge, Separator
 - v0.4 레이아웃: Dialog(모달), Footer, TopNav, SideNav, Columns, BentoGrid
@@ -75,6 +43,7 @@
 - v0.6 fabrics 도메인 컴포넌트: 목록은 첫 소비 프로젝트 기획 시 확정
 
 ## 완료
+- v0.2.0 (2026-09-28) 폼/피드백 컴포넌트: 폼 11종(Label, Input, Textarea, Field, Checkbox, RadioGroup, Switch, Select, Slider, Toggle, ToggleGroup)과 피드백 7종(Alert, Toast, Tooltip, Popover, Progress, Spinner, Skeleton)을 DoD 3요건으로 완성. 기반 레이어로 아이콘(`lucide` + `<Icon>`)과 모션 토큰을 추가하고, 의미 슬롯을 22 → 43개로 늘렸다. 도구 정비로 ESLint+Prettier 공통 설정(oxlint 제거), `a11y.test: 'error'` 승격, PR CI 워크플로를 도입했다. 테스트 6 → 81개
 - v0.1.1 (2026-09-22) 패키지 README: 레지스트리 페이지용 README 3종 추가. 릴리스 워크플로를 `changesets/action@v2`로 전환해 패키지별 태그·GitHub Release 자동 생성 복구, 저장소 레벨 `vX.Y.Z` 태그 생성 step 추가
 - v0.1.0 (2026-09-22) 최초 골격: 토큰→테마→코어→Storybook 파이프라인 연결. `packages/tokens`(DTCG primitives/semantic, `@theme` CSS 변수), `packages/core`(Button variant 4·size 3·`asChild`, `layoutClass`, tsdown), `themes/neutral`(light/dark 단일 번들), `apps/storybook`(`data-mode` 툴바). changesets → CHANGELOG → 태그 → GitHub Packages publish 파이프라인 검증 완료
 
