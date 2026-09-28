@@ -1,5 +1,13 @@
 projects/*
 !projects/.gitkeep
+
+# 컨테이너 디렉터리 예외: app-pocket은 자체 .git이 없고 하위에 저장소 두 개를
+# 두므로, 세션 설정 파일만 메타 저장소가 추적한다. 상위 디렉터리를 먼저
+# 예외 처리해야 하위 파일의 부정 패턴이 적용된다.
+!projects/app-pocket/
+projects/app-pocket/*
+!projects/app-pocket/CLAUDE.md
+!projects/app-pocket/.claude/
 .claude/settings.local.json
 .DS_Store
 

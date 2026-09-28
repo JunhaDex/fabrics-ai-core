@@ -26,6 +26,32 @@
 - `docs/PROJECTS.md`에 저장소 URL을 기록해, 다른 기기에서도 어떤 프로젝트를
   어디서 clone해야 하는지 알 수 있게 한다.
 
+#### 복수 저장소 프로젝트 (컨테이너 디렉터리)
+플랫폼별 툴체인이 달라 저장소를 나눠야 하지만 하나의 프로젝트로 다뤄야 하는
+경우, `projects/<name>/`을 `.git` 없는 컨테이너 디렉터리로 두고 그 하위에 각
+저장소를 clone한다. 결정 근거는
+`docs/ssot/decisions/0005-multi-repo-project-container-directory.md` 참고.
+
+```
+projects/app-pocket/          # .git 없음. 세션의 작업 디렉터리
+  CLAUDE.md                   # 메타 저장소가 추적
+  .claude/settings.json       # 메타 저장소가 추적
+  aos/                        # 독립 저장소
+  ios/                        # 독립 저장소
+```
+
+- 프로젝트 등록 단위는 컨테이너다. `docs/PROJECTS.md`의 행,
+  `docs/<name>-todo.md`, Slack 채널이 각각 하나씩이다.
+- 세션은 컨테이너에서 시작한다. 두 저장소가 모두 작업 디렉터리 안에 있으므로
+  서브에이전트가 각각을 수정할 수 있고, 프로젝트 격리 원칙은 그대로 유지된다.
+- 컨테이너의 `CLAUDE.md`와 `.claude/settings.json`은 어느 프로젝트 저장소에도
+  속하지 않으므로, 메타 저장소 `.gitignore`에 예외를 두어 추적한다(아래
+  ".gitignore 핵심" 참고).
+- 컨테이너는 git 저장소가 아니므로 git 명령은 대상을 명시한다
+  (`git -C aos status`). 릴리스는 저장소마다 한 번씩 수행한다.
+- 저장소를 나눌 이유가 없으면 `projects/<name>/` 자체를 저장소로 두는 기본
+  방식을 쓴다.
+
 #### 프로젝트 CLAUDE.md 필수 구성
 루트 CLAUDE.md의 "조직 공통 원칙"이 말하는 "상속"은 문서로만 안내하는 것이
 아니라, 프로젝트 자체 `CLAUDE.md`에 아래 3줄을 실제로 추가해 Claude Code가
@@ -124,7 +150,10 @@ HEAD, 동기화 실수 같은 submodule 특유의 마찰만 늘어난다. 대신
 ## 새 기기 부트스트랩 (수동 체크리스트)
 1. 메타 저장소를 clone한다: `git clone <control-repo-url> 0_pjt_fabrics`
 2. `docs/PROJECTS.md`를 읽고, 이 기기에서 작업할 프로젝트를 선택한다.
-3. 선택한 프로젝트만 `projects/<name>/`에 개별 clone한다.
+3. 선택한 프로젝트만 `projects/<name>/`에 개별 clone한다. 복수 저장소
+   프로젝트는 컨테이너 디렉터리를 먼저 만들고 그 하위에 각각 clone한다
+   (`projects/app-pocket/aos/`, `projects/app-pocket/ios/`). 컨테이너의
+   `CLAUDE.md`와 `.claude/settings.json`은 메타 저장소에 이미 들어 있다.
 4. 루트에서 Claude Code를 실행해 `CLAUDE.md`가 정상적으로 로드되는지 확인한다.
 5. `tools/slack-worker`를 쓰는 경우, `tools/slack-worker/README.md`를 따라
    로컬 전용 파일(`.env`, `channels.local.json`)을 채운다.
@@ -159,6 +188,14 @@ HEAD, 동기화 실수 같은 submodule 특유의 마찰만 늘어난다. 대신
 ```
 projects/*
 !projects/.gitkeep
+
+# 컨테이너 디렉터리 예외 (ADR 0005). 상위 디렉터리를 먼저 예외 처리해야
+# 하위 파일의 부정 패턴이 적용된다. 와일드카드 대신 프로젝트명을 명시한다.
+!projects/app-pocket/
+projects/app-pocket/*
+!projects/app-pocket/CLAUDE.md
+!projects/app-pocket/.claude/
+
 .claude/settings.local.json
 .DS_Store
 *.local.json
