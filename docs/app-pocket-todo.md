@@ -96,6 +96,28 @@ Slack: `C0C52CS9QFK`
   (Statcounter 2026-08-11). 전 세계 기준이므로 한국의 실제 커버리지는 더
   높다. **재검토 시점은 Play Console의 실사용자 기기 분포를 확보한 이후다**
 
+### 로컬 검증 환경
+- 웹뷰가 접근하는 주소는 **반드시 `localhost`여야 한다.** `http://localhost`는
+  브라우저 표준에서 신뢰 가능한 출처로 취급되어 HTTPS 없이도 secure context가
+  되지만, `10.0.2.2`나 LAN IP는 그렇지 않다. secure context가 아니면 Service
+  Worker, Geolocation, 카메라·마이크 접근 등이 비활성화된다. 안드로이드
+  에뮬레이터의 `10.0.2.2`는 이 이유로 Google 공식 문서가 WebView 디버깅에
+  권장하지 않는다
+- Android는 `adb reverse tcp:<port> tcp:<port>`로 기기의 `localhost`를 개발
+  머신으로 포워딩한다. 에뮬레이터와 USB 연결 실기기 모두 동작한다
+- iOS 시뮬레이터는 호스트와 네트워크 스택을 공유하므로 `localhost`가 그대로
+  동작한다. **실기기는 `adb reverse`에 해당하는 수단이 없어 localhost를 쓸 수
+  없다.** 따라서 로컬 검증은 에뮬레이터와 시뮬레이터 중심으로 하고, 실기기
+  검증은 외부 HTTPS 도메인 확보 이후로 미룬다
+- 평문 HTTP 허용 설정은 **debug 빌드에만 적용한다.** Android는
+  `src/debug/`의 network security config에서 localhost와 127.0.0.1만 열고,
+  iOS는 Debug 구성 한정으로 `NSAllowsLocalNetworking` 또는 localhost 한정
+  `NSExceptionDomains`를 쓴다. `NSAllowsArbitraryLoads`는 전역으로 ATS를 꺼
+  스토어 심사에서 소명을 요구받으므로 쓰지 않는다
+- 테스트 페이지는 정적 HTML 하나로 충분하다. 브릿지 호출 결과와 오류를
+  **화면에 렌더링하는 로그 영역**을 반드시 둔다. 실기기에서는 콘솔 확인이
+  번거롭다. 원격 설정 JSON도 같은 서버에 정적 파일로 둔다
+
 ### v0.1 범위 선정 기준
 - 카메라와 앨범을 v0.1에 넣는다. 권한 요청, 사용자 취소, 바이너리 데이터 반환
   이라는 세 경로를 한 번에 통과시켜야 계약의 형태가 확정된다. 이 검증 없이
@@ -252,13 +274,19 @@ capability 목록이다.
         상태 표시줄 색 제어)
   - [ ] 기기 기능 브릿지: 카메라 촬영, 앨범 선택, 파일 다운로드와 공유 시트,
         클립보드, 햅틱
-  - [ ] 링크 오픈 브릿지: 기본 브라우저로 열기, App Link/Universal Link로
-        관련 앱 열기. OS별 실현 가능성은 구현 시점에 재점검한다
+  - [ ] 링크 오픈 브릿지 (1) 기본 브라우저로 열기. localhost로 검증 가능
+  - [ ] 링크 오픈 브릿지 (2) App Link/Universal Link로 관련 앱 열기.
+        **blocker: 외부 HTTPS 도메인이 필요하다.** OS가
+        `/.well-known/assetlinks.json`(패키지명 + 서명 인증서 SHA-256 지문)과
+        `/.well-known/apple-app-site-association`을 외부에서 직접 가져가
+        검증하므로 localhost로는 성립하지 않는다. 사용자가 테스트 시점 전까지
+        도메인을 구축해 제공한다
+  - OS별 실현 가능성은 구현 시점에 재점검한다
   - [ ] 브릿지 계약의 잠정 정의 문서화 (이벤트명, 페이로드, capability 이름
         체계, 오류 형식, UA 토큰 형식). 안정화 후 `app-bridge`로 이관
 - 세부 step: (핵심 기능 확정 후 작성)
-- 다음 행동: 아래 "미확정 사항"의 쿠키·인증 처리 방식과 최소 지원 OS 버전을
-  확정한 뒤 세부 step을 작성한다
+- 다음 행동: 세부 step을 작성하고 구현에 착수한다. 링크 오픈 브릿지 (2)는
+  외부 HTTPS 도메인이 확보된 뒤에 진행한다
 
 ## 다음 버전 (계획)
 
