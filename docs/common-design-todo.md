@@ -54,9 +54,8 @@
 
 ## 진행 중: v0.3 데이터 표시
 - 컨텍스트(2026-09-29 착수): v0.2로 폼·피드백이 갖춰졌다. 데이터 표시 계층을 채워
-  v0.5 테마 작업 전에 슬롯 부족을 드러낸다. 브랜치를 둘로 나눠 진행하고 릴리스는
-  v0.3.0 한 번으로 묶는다. 앞 브랜치에서 토큰 슬롯이 먼저 확정되어야 뒤 브랜치가
-  그 위에서 작업한다.
+  v0.5 테마 작업 전에 슬롯 부족을 드러낸다. 브랜치는 `feat/v0.3-components` 하나이며,
+  새 컴포넌트 추가를 연속적인 변경으로 취급해 순차 커밋한다.
 - 핵심 기능 (모두 완료되면 릴리스). DoD 3요건(스토리 + `addon-a11y` 통과 + Vitest
   상호작용 테스트)을 갖춘 뒤 체크한다:
   - [ ] Badge
@@ -65,16 +64,29 @@
   - [ ] Accordion
   - [ ] Table (정적)
   - [ ] DataTable (정렬·선택·페이지네이션)
-- 세부 step:
-  - [ ] (선행) 의미 슬롯 12개 추가 — 색 10개 + `sem.spacing.cell-x`/`cell-y`. 슬롯마다
-        `slots.json` + `themes/neutral/tokens/semantic/light.json` + `dark.json` 3파일 동시 갱신
-  - [ ] (선행) `motion.css`에 `accordion-down`/`accordion-up` keyframes +
+- 세부 step (한 사이클 = 한 커밋. 종료 게이트는 CI 순서 그대로
+  `pnpm lint && pnpm build && pnpm format:check && pnpm typecheck && pnpm test`):
+  - [ ] 의미 슬롯 12개 추가 — 색 10개 + `sem.spacing.cell-x`/`cell-y`. 슬롯마다
+        `slots.json` + `themes/neutral/tokens/semantic/light.json` + `dark.json` 3파일 동시 갱신.
+        `tokens.stories.tsx`에 스와치를 추가해 light/dark 대비(solid 4.5:1, outline 테두리 3:1) 확인
+  - [ ] `motion.css`에 `accordion-down`/`accordion-up` keyframes +
         `--animate-accordion-down`/`-up` 추가
-  - [ ] `feat/v0.3-primitives`: Badge, Separator, Tabs, Accordion
-  - [ ] `feat/v0.3-table`: Table, DataTable
+  - [ ] Separator — 가장 작은 컴포넌트로 빌드·테스트 경로를 먼저 뚫는다
+  - [ ] Badge — 24키 매트릭스를 전부 소비하므로 슬롯 정합성이 여기서 드러난다
+  - [ ] Tabs — `activationMode` 양쪽, horizontal/vertical, 넘침 시 가로 스크롤
+  - [ ] Accordion — `type` 판별 유니온, `headingLevel`, height 전환,
+        `prefers-reduced-motion`
+  - [ ] Table — 접근 가능한 이름이 있는 경우와 없는 경우를 각각 스토리로 만들어
+        `role="region"` 분기가 axe를 통과함을 증명한다
+  - [ ] DataTable 정렬 — 3-state 순환, `aria-sort` 전이, `aria-live` 안내. 비제어·제어 스토리 2개
+  - [ ] DataTable 선택 — 헤더 indeterminate, 현재 페이지 범위. **정렬 후 선택 유지**를
+        `getRowId` 기준으로 테스트에 고정한다
+  - [ ] DataTable 페이지네이션 — 페이지 크기 변경 시 현재 페이지 보정, 마지막 페이지
+        경계, `loading`(Skeleton 행) + `emptyMessage`
+  - [ ] 릴리스: changeset 작성 → PR squash merge(main에 커밋 하나) → 릴리스 PR 병합
 - v0.3 범위 밖: 컬럼 필터, 그룹핑·집계, 가상화, 컬럼 리사이즈·순서 변경, sticky header,
   다중 컬럼 정렬, 단일 선택(라디오) 행, 모바일 카드 전환
-- 다음 행동: `feat/v0.3-primitives` 브랜치 생성 완료. 의미 슬롯 12개 추가부터 시작한다
+- 다음 행동: `feat/v0.3-components` 브랜치 생성 완료. 의미 슬롯 12개 추가부터 시작한다
 
 ## 다음 버전 (계획)
 - v0.4 레이아웃: Dialog(모달), Footer, TopNav, SideNav, Columns, BentoGrid
