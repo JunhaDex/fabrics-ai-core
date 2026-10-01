@@ -54,6 +54,7 @@
 | `docs/ssot/repo-architecture.md` | 메타 저장소/프로젝트 저장소 구조, 다기기 동기화 방식 |
 | `docs/ssot/glossary.md` | fabrics 업종 도메인 용어집 |
 | `docs/ssot/decisions/` | ADR (아키텍처/조직 의사결정 기록) |
+| `docs/architecture/` | 프로젝트 범위의 현행 설계 규약 (브릿지 계약 등). 여러 저장소가 함께 참조한다 |
 | `docs/PROJECTS.md` | 프로젝트 레지스트리 (정본) |
 | `docs/TODO.md` | 루트 세션 메타 작업 트래커 (SSOT 아님) |
 | `docs/<name>-todo.md` | 프로젝트별 todo 파일. 결정 사항, 진행 중 버전, 완료 이력을 한 파일에 기록. 시행착오는 제외 (SSOT 아님) |

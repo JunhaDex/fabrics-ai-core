@@ -36,8 +36,11 @@ Slack: `C0C52CS9QFK`
 - 다만 **패키지 작성은 이 프로젝트의 네이티브 구현이 시행착오를 거쳐 계약을
   안정시킨 뒤에 착수한다.** 계약이 흔들리는 동안 패키지를 먼저 만들면 MAJOR
   승급이 반복되어 버전 번호가 의미를 잃는다
-- 그동안 계약의 잠정 정의는 이 프로젝트 안에 두고, 안정화 시점에 `app-bridge`로
-  이관한다
+- 그동안 계약의 잠정 정의는 루트 메타 저장소의
+  `docs/architecture/app-pocket-bridge.md` 한 파일에 두고, 안정화 시점에
+  `app-bridge`로 이관한다. 두 네이티브 저장소에 각각 복사본을 두면 동기화가
+  깨지므로 양쪽이 같은 파일 하나를 참조한다. 이 폴더의 역할은
+  `docs/ssot/repo-architecture.md`의 "아키텍처 설계 문서" 절이 정의한다
 - 의존 순서: app-pocket 네이티브 구현 → app-bridge 패키지 배포 → 웹앱 개발.
   웹앱은 `common-design`과 `app-bridge`가 모두 완성된 뒤에 착수 가능하다
 
@@ -96,6 +99,23 @@ Slack: `C0C52CS9QFK`
   (Statcounter 2026-08-11). 전 세계 기준이므로 한국의 실제 커버리지는 더
   높다. **재검토 시점은 Play Console의 실사용자 기기 분포를 확보한 이후다**
 
+### 빌드 시점 주입 값
+- **application identifier(Android `applicationId`, iOS
+  `PRODUCT_BUNDLE_IDENTIFIER`)는 앱마다 다르므로 소스에 리터럴로 적지 않는다.**
+  v0.1에서도 플랫폼별 집약 지점에만 둔다. Android는 product flavor의
+  `applicationId`, iOS는 xcconfig의 `POCKET_BUNDLE_ID`를
+  `PRODUCT_BUNDLE_IDENTIFIER`가 참조하는 형태다. 2단계에서는 그 한 곳의 값을
+  config 저장소에서 읽어오도록 교체한다
+- 파생 영향: App Link 검증은 `applicationId`와 서명 인증서 지문에 묶이므로
+  `assetlinks.json`이 앱별로 달라진다. iOS의 Associated Domains entitlement도
+  번들 식별자를 참조하므로 entitlements 파일이 변수화 대상이다
+- **시작 URL도 같은 집약 지점에 둔다.** v0.1의 요구사항은 "단일 웹 주소"이지만
+  검증 환경이 로컬과 외부로 갈리므로 소스에 박으면 환경을 바꿀 때마다 코드를
+  수정해야 한다. 환경 구분은 Android의 buildType과 iOS의 build configuration이
+  담당하고, flavor와 xcconfig의 앱 차원은 2단계를 위해 비워 둔다
+  - Debug 기본값은 `http://localhost:3000`이다
+  - Release 값은 외부 HTTPS 도메인이며 **아직 확보되지 않았다**
+
 ### 로컬 검증 환경
 - 웹뷰가 접근하는 주소는 **반드시 `localhost`여야 한다.** `http://localhost`는
   브라우저 표준에서 신뢰 가능한 출처로 취급되어 HTTPS 없이도 secure context가
@@ -103,20 +123,50 @@ Slack: `C0C52CS9QFK`
   Worker, Geolocation, 카메라·마이크 접근 등이 비활성화된다. 안드로이드
   에뮬레이터의 `10.0.2.2`는 이 이유로 Google 공식 문서가 WebView 디버깅에
   권장하지 않는다
-- Android는 `adb reverse tcp:<port> tcp:<port>`로 기기의 `localhost`를 개발
-  머신으로 포워딩한다. 에뮬레이터와 USB 연결 실기기 모두 동작한다
+- Android는 `adb reverse tcp:3000 tcp:3000`으로 기기의 `localhost`를 개발
+  머신으로 포워딩한다. 에뮬레이터와 USB 연결 실기기 모두 동작한다. Google
+  공식 WebView 문서가 권장하는 방식이며, 같은 문서가 `10.0.2.2`를 secure
+  context가 아니라는 이유로 비권장한다고 명시한다
+  - **영구 설정이 아니다.** 에뮬레이터 재부팅이나 `adb kill-server` 이후
+    사라지므로 개발 스크립트에 넣어 매번 실행한다
+  - `next dev`는 기본적으로 `0.0.0.0`에 바인딩하므로 호스트의 `127.0.0.1`에서도
+    응답한다. 추가 플래그가 필요하지 않다
+  - **Next.js의 `allowedDevOrigins`는 설정하지 않는다.** `adb reverse`를 거치면
+    Host 헤더가 `localhost:3000`이라 Next가 동일 출처로 판단한다. LAN IP로
+    접속할 때에만 이 설정이 필요해지는데, 그 경로는 secure context를 잃으므로
+    애초에 쓰지 않는다
+  - HMR 웹소켓도 같은 포트를 쓰므로 함께 터널링된다
+  - 대안인 Chrome DevTools 포트 포워딩(`chrome://inspect`)도 `localhost`
+    호스트명을 유지한다. GUI에 의존하므로 스크립트화에는 불리하다
 - iOS 시뮬레이터는 호스트와 네트워크 스택을 공유하므로 `localhost`가 그대로
   동작한다. **실기기는 `adb reverse`에 해당하는 수단이 없어 localhost를 쓸 수
   없다.** 따라서 로컬 검증은 에뮬레이터와 시뮬레이터 중심으로 하고, 실기기
   검증은 외부 HTTPS 도메인 확보 이후로 미룬다
-- 평문 HTTP 허용 설정은 **debug 빌드에만 적용한다.** Android는
-  `src/debug/`의 network security config에서 localhost와 127.0.0.1만 열고,
-  iOS는 Debug 구성 한정으로 `NSAllowsLocalNetworking` 또는 localhost 한정
-  `NSExceptionDomains`를 쓴다. `NSAllowsArbitraryLoads`는 전역으로 ATS를 꺼
-  스토어 심사에서 소명을 요구받으므로 쓰지 않는다
+- 평문 HTTP 허용 설정은 **debug 빌드에만 적용한다.** Android 9(API 28)부터
+  평문 트래픽이 기본 차단되고 이 차단이 WebView에도 적용되어, 페이지 내용이
+  로드되기 전에 `ERR_CLEARTEXT_NOT_PERMITTED`로 실패한다
+  - Android: `src/debug/res/xml/network_security_config.xml`에서 `localhost`와
+    `127.0.0.1`만 `cleartextTrafficPermitted="true"`로 열고,
+    `src/debug/AndroidManifest.xml`이 이 파일을 가리킨다. release 소스 세트에는
+    포함되지 않는다
+  - iOS: Debug 구성에 한해 `NSAllowsLocalNetworking`을 쓴다. 이 키는 점이 없는
+    호스트명과 `.local` 도메인의 ATS를 해제하므로 `localhost`를 포함하지만
+    **IP 리터럴에는 효과가 없다.** `127.0.0.1`을 쓰려면 `NSExceptionDomains`가
+    따로 필요하므로, 설정을 단순하게 유지하기 위해 호스트명 `localhost`를 쓴다
+  - `NSAllowsArbitraryLoads`는 전역으로 ATS를 꺼 스토어 심사에서 소명을
+    요구받으므로 쓰지 않는다
 - 테스트 페이지는 정적 HTML 하나로 충분하다. 브릿지 호출 결과와 오류를
   **화면에 렌더링하는 로그 영역**을 반드시 둔다. 실기기에서는 콘솔 확인이
   번거롭다. 원격 설정 JSON도 같은 서버에 정적 파일로 둔다
+- 외부 HTTPS 도메인을 확보하면 포트 포워딩과 평문 예외가 모두 불필요해지고
+  실기기 검증 경로가 열린다. 에뮬레이터와 시뮬레이터는 호스트를 경유해 그대로
+  접속하므로 추가 설정이 없다. 전제 조건은 세 가지다
+  - 공개 CA가 발급한 인증서여야 한다. 사설 CA를 쓰면 Android debug 설정의
+    `<debug-overrides>`에 `<certificates src="user"/>`를 넣어야 한다
+  - 에뮬레이터는 호스트의 DNS를 그대로 쓰지 않고 자체 DNS 프록시를 거치므로,
+    공개 DNS에 등재되지 않은 도메인은 `-dns-server` 지정이 필요하다
+  - 이 도메인을 커스텀 HTTP 헤더 부착 대상인 내부 표시 허용 도메인 목록에
+    등록해야 서버 측 분기를 검증할 수 있다
 
 ### v0.1 범위 선정 기준
 - 카메라와 앨범을 v0.1에 넣는다. 권한 요청, 사용자 취소, 바이너리 데이터 반환
@@ -276,17 +326,42 @@ capability 목록이다.
         클립보드, 햅틱
   - [ ] 링크 오픈 브릿지 (1) 기본 브라우저로 열기. localhost로 검증 가능
   - [ ] 링크 오픈 브릿지 (2) App Link/Universal Link로 관련 앱 열기.
-        **blocker: 외부 HTTPS 도메인이 필요하다.** OS가
+        **blocker: 외부 HTTPS 도메인이 아직 확보되지 않았다.** OS가
         `/.well-known/assetlinks.json`(패키지명 + 서명 인증서 SHA-256 지문)과
         `/.well-known/apple-app-site-association`을 외부에서 직접 가져가
-        검증하므로 localhost로는 성립하지 않는다. 사용자가 테스트 시점 전까지
-        도메인을 구축해 제공한다
+        검증하므로 localhost로는 성립하지 않는다. **호스팅 수단은 확정되었다.**
+        Next 웹서버가 두 파일을 서빙하므로 별도 정적 호스팅이 필요하지 않고,
+        도메인 확보가 유일한 잔여 조건이다
   - OS별 실현 가능성은 구현 시점에 재점검한다
   - [ ] 브릿지 계약의 잠정 정의 문서화 (이벤트명, 페이로드, capability 이름
         체계, 오류 형식, UA 토큰 형식). 안정화 후 `app-bridge`로 이관
-- 세부 step: (핵심 기능 확정 후 작성)
-- 다음 행동: 세부 step을 작성하고 구현에 착수한다. 링크 오픈 브릿지 (2)는
-  외부 HTTPS 도메인이 확보된 뒤에 진행한다
+- 세부 step:
+  - [ ] S0 개발 환경 준비. Android Studio와 SDK, 에뮬레이터 이미지를 설치하고
+        `adb`를 PATH에 등록한다. Xcode는 이미 설치되어 있다
+  - [ ] S1 브릿지 계약 잠정 정의 문서 작성(`docs/architecture/app-pocket-bridge.md`).
+        핵심 기능 목록에서는 마지막이지만 구현보다 앞선다. 두 플랫폼이 같은
+        계약을 구현하고 서브에이전트가 양쪽을 나눠 작업하므로, 이벤트명과
+        페이로드, capability 이름 체계, 오류 형식, UA 토큰 형식이 먼저 고정되지
+        않으면 두 구현이 어긋난다
+  - [ ] S2 양 플랫폼 프로젝트 골격 생성. Android는 Empty Activity(Compose),
+        iOS는 App(SwiftUI) 템플릿이다. 생성 직후 `minSdk 31`과 Deployment
+        Target `18.0`을 지정하고, 빌드 설정 집약 지점(product flavor, xcconfig)을
+        이 시점에 만든다. 나중에 도입하면 흩어진 값을 회수하는 작업이 된다.
+        `.gitignore`와 `cliff.toml`도 함께 배치한다
+  - [ ] S3 로컬 검증 환경 구축. 로그 영역을 갖춘 테스트 페이지, 원격 설정 JSON,
+        debug 한정 평문 HTTP 설정, `adb reverse`를 포함한 개발 스크립트
+  - [ ] S4 웹뷰 셸 (시작 URL 로딩, 오프라인·로딩 실패 화면)
+  - [ ] S5 시작 화면 2층 구조
+  - [ ] S6 브릿지 기반 레이어
+  - [ ] S7 셸 기본 동작
+  - [ ] S8 기기 기능 브릿지. 카메라와 앨범을 먼저 구현한다. 권한 요청, 사용자
+        취소, 바이너리 반환 세 경로가 계약의 형태를 확정하므로 나머지 기능보다
+        선행해야 한다
+  - [ ] S9 강제 업데이트
+  - [ ] S10 링크 오픈 브릿지 (1) 기본 브라우저로 열기
+  - [ ] S11 링크 오픈 브릿지 (2). 도메인 확보 이후에 진행한다
+- 다음 행동: S0와 S1을 병행한다. 사용자가 Android 개발 환경을 설치하는 동안
+  세션은 브릿지 계약 잠정 정의 문서의 초안을 작성한다
 
 ## 다음 버전 (계획)
 
@@ -309,6 +384,9 @@ _(없음)_
 
 - **통화 관련 기능의 범위**. 전화 걸기 수준인지 통화 기록 접근까지인지에 따라
   Play Console 제한 권한 승인 절차의 필요 여부가 갈린다
+- **외부 HTTPS 도메인**. 아직 설정 전이다. 확보되면 실기기 검증 경로와 링크
+  오픈 브릿지 (2)가 함께 열린다. `/.well-known/` 두 파일은 Next 웹서버가
+  서빙하므로 호스팅 수단은 추가로 결정할 것이 없다
 - **원격 설정 JSON의 스키마와 호스팅 위치**
 - **도입할 SSO 제공자**. Apple은 앱이 서드파티 또는 소셜 로그인을 제공할 때
   Sign in with Apple을 함께 제공하도록 요구하는 조항(App Store Review
