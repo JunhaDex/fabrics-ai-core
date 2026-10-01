@@ -108,6 +108,13 @@ Claude Code의 **작업 디렉터리 경계**가 막는다(작업 디렉터리 �
 프로젝트에서 대화형 세션을 한 번 열어 trust 대화상자를 수락해야 한다.
 결정 근거는 `docs/ssot/decisions/0004-todo-two-scopes-in-one-file.md` 참고.
 
+여기에 `permissions.ask` 규칙을 추가하는 것은 허용한다. deny 금지(ADR 0003)는
+실효가 없는 경로 패턴을 겨냥한 것이고, `ask`는 차단이 아니라 승인 요구이므로
+목적이 다르다. 현재 쓰이는 규칙은 `Bash(git push*)` 하나다. 원격에 발행하는
+동작은 세션이 자동으로 수행하지 않고 매번 사용자 승인을 받는다. 루트 설정은
+`Bash(git push --force*)`를 deny로 막지만 프로젝트 세션은 루트 설정을 로드하지
+않으므로, 프로젝트 세션에서 force push는 거부가 아니라 승인 요구 대상이 된다.
+
 프로젝트 CLAUDE.md의 `@import` 구성은 `.claude/skills/new-project/SKILL.md`의
 스캐폴딩 단계에서 자동으로 반영된다.
 

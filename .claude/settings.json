@@ -14,6 +14,9 @@
       "Bash(* --version)",
       "Bash(* --help *)"
     ],
+    "ask": [
+      "Bash(git push*)"
+    ],
     "deny": [
       "Bash(rm -rf *)",
       "Bash(sudo *)",

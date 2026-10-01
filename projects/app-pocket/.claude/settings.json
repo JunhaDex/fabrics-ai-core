@@ -1,5 +1,8 @@
 {
   "permissions": {
-    "additionalDirectories": ["../../docs"]
+    "additionalDirectories": ["../../docs"],
+    "ask": [
+      "Bash(git push*)"
+    ]
   }
 }
