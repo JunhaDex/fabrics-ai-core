@@ -144,6 +144,17 @@ Claude Code의 **작업 디렉터리 경계**가 막는다(작업 디렉터리 �
   - 앱: [git-cliff](https://git-cliff.org). 저장소 루트 `cliff.toml` 하나만
     추가하고, 릴리스 시 `git cliff --tag vX.Y.Z -o CHANGELOG.md`를 실행해
     태그와 함께 커밋한다.
+    - `cliff.toml`은 `git cliff --init keepachangelog`로 생성한 뒤
+      `commit_parsers`를 커밋 타입 기준으로 교체한다. 기본 템플릿은 메시지
+      속 영어 단어(`add`, `fix`)로 분류하므로 한국어 제목의 `feat:`가
+      Changed로 들어간다.
+    - 분류: `!` 또는 `BREAKING CHANGE` 푸터 → Breaking, `feat` → Added,
+      `refactor`·`perf` → Changed, `revert` → Removed, `fix` → Fixed.
+      `chore`·`docs`·`ci`·`build`·`test`·`style`은 제외하되,
+      `protect_breaking_commits = true`로 파괴적 변경은 타입과 무관하게 남긴다.
+    - 그룹명 앞에 `<!-- N -->` 주석을 붙여 위 순서로 정렬하고, 템플릿에서
+      `striptags`로 제거한다. 원격 저장소가 자동 인식되지 않으므로
+      `[remote.github]`에 owner와 repo를 명시한다.
 - **릴리스 절차**: `docs/TODO.md`의 "릴리스 시 처리 순서"를 따른다.
   CHANGELOG 생성과 태그 이후, 루트 `docs/<name>-todo.md`의 "진행 중" 절을
   "완료" 절로 옮긴다.
