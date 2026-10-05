@@ -43,7 +43,17 @@
 - 정렬은 단일 컬럼 3-state(asc→desc→none)다. 트리거는 `<th>` 안의 `<button>`이고, `aria-sort`와 함께 `aria-live="polite"` 안내 영역을 둔다. `aria-sort` 변경만으로는 대부분의 스크린 리더가 즉시 읽지 않는다
 - 선택은 다중 체크박스만 지원하고, 헤더 전체선택 범위는 현재 페이지다. 행 클릭 선택은 넣지 않는다 — 행 안의 링크·버튼과 충돌한다
 - 페이지네이션 UI는 prev/next + `x–y / z` + 페이지 크기 `Select`다. 페이지 번호 버튼은 말줄임 로직이 붙어 제외하고, `Pagination` 독립 export도 하지 않는다
-- Table의 접근 가능한 이름(`caption`/`aria-label`)은 선택 prop이다. 이름이 있으면 가로 스크롤 래퍼에 `tabIndex={0}` + `role="region"`을 붙여 키보드 스크롤을 지원하고, 없으면 `role="region"`을 생략한다 — 이름 없는 region 자체가 axe 위반이기 때문이다
+- Table의 접근 가능한 이름(`caption`/`aria-label`)은 선택 prop이다. 이름이 있으면 가로 스크롤 래퍼에 `role="region"`을 붙이고, 없으면 생략한다. `tabIndex={0}`은 **이름과 무관하게 항상** 붙인다 (아래 측정 결과 참고)
+- `<caption>`은 테이블의 이름이지 스크롤 래퍼의 이름이 아니다. `caption`만 준 경우 래퍼
+  region 은 `useId()` 로 만든 `aria-labelledby` 로 caption 을 가리켜야 이름을 갖는다
+- Table 셀은 `whitespace-nowrap` 이다. 줄바꿈을 허용하면 `w-full` 표가 컨테이너에 맞춰
+  줄어들어 가로 스크롤이 발생하지 않고, 스크롤 래퍼와 `role="region"` 분기 전체가
+  무의미해진다 (288px 컨테이너에서 `scrollWidth === clientWidth` 로 확인)
+- axe 측정 결과(axe-core 4.13, 넘치는 표 기준): `tabIndex` 를 빼면 **위반**
+  (`scrollable-region-focusable`, "Scrollable region must have keyboard access")이므로
+  이름 없는 경우에도 `tabIndex={0}` 이 필요하다. 반면 이름 없는 `role="region"` 은 axe 가
+  **잡지 않는다** — region 생략은 ARIA 규범(이름 없는 region 은 랜드마크로 노출되지 않음)에
+  근거한 선택이며, 그 동작은 우리 테스트(`queryByRole('region')` 가 null)가 고정한다
 - 시각 variant는 컴포넌트당 1종으로 시작한다(Tabs underline, Accordion bordered). 표의 줄무늬·테두리는 prop으로 열지 않고 테마가 결정한다. prop으로 열면 brutalism·tactile-surface가 룩앤필을 뒤집을 수 없다
 - Badge는 tone 6종(neutral/brand/success/warning/danger/info) × appearance(solid/subtle/outline) × size다. 토큰은 `<tone>`/`on-<tone>`/`<tone>-subtle`/`on-<tone>-subtle` 4키를 6톤에 균일하게 적용한 24키 매트릭스로 고정한다. 슬롯 이름과 `tv()` variant 키를 테마 간 동일하게 유지해, 테마를 추가할 때 같은 키 집합의 **값만 다시 선언**하면 되게 한다. outline은 테두리 `<tone>` + 텍스트 `on-<tone>-subtle`로 새 슬롯 없이 만든다
 - 24키 매트릭스를 채우기 위한 신규 슬롯 10개: `neutral`, `on-neutral`, `neutral-subtle`, `on-neutral-subtle`, `brand-subtle`, `on-brand-subtle`, `on-success`, `on-warning`, `info`, `on-info`
@@ -51,33 +61,104 @@
 - Accordion은 `--radix-accordion-content-height` 기반 height 전환을 쓴다. `motion.css`에 `accordion-down`/`accordion-up` keyframes와 `--animate-*` 2개를 추가하고 지속 시간은 `--sem-duration-base`를 참조한다. 제목 레벨은 `headingLevel` prop으로 받는다 — Radix `Header` 기본값 `<h3>`이 페이지 제목 구조와 어긋날 수 있다
 - Tabs는 `activationMode`를 prop으로 노출하고 기본값은 `automatic`(APG 기본)이다. 무거운 콘텐츠 탭에서 `manual`이 필요해진다. horizontal/vertical 모두 지원하고, 탭이 넘치면 가로 스크롤한다. `forceMount`는 노출하지 않는다
 - Separator는 Radix props를 통과시키는 데서 멈춘다. 가운데 라벨이 들어가는 구분선은 마크업이 달라 별도 컴포넌트감이고, 간격은 `layoutClass()`가 이미 통과시키는 `className`의 margin에 위임한다
+- Radix Accordion 은 Content 파트의 **인라인 스타일**로
+  `--radix-accordion-content-height: var(--radix-collapsible-content-height)` 를 선언한다
+  (`@radix-ui/react-accordion@1.2.20` dist 확인). 변수가 Content 요소에만 있으므로
+  height keyframes 도 Content 에 직접 걸어야 하고, 자식 래퍼에 걸면 해석되지 않는다
+- 24키 매트릭스에 대비 기준(solid·subtle 텍스트 4.5:1, outline 테두리 3:1)을 적용하면서
+  기존 값 4개를 바꿨다. light `success` green.600→green.700(흰 글자 3.30→5.02),
+  light `warning` amber.500→amber.600(테두리 2.15→3.19), dark `on-brand`·`on-danger`
+  white→gray.950(3.68·3.76→5.41·5.29). 어두운 면 위에서는 밝은 톤 + 어두운 on-color가
+  대비를 만드는 유일한 조합이다. `warning`은 두 모드 모두 `on-warning`이 gray.950이다
+- Tailwind v4 `@theme inline` 로 선언한 변수는 런타임 CSS에 **출력되지 않는다**. 브리지가
+  만드는 `--color-<슬롯>` 은 유틸리티 안에서 `var(--sem-color-<슬롯>)` 로 인라인될 뿐이므로,
+  스토리에서 `var(--color-brand)` 를 직접 참조하면 값이 비어 투명하게 렌더된다. 스와치는
+  유틸리티 클래스(`bg-brand text-on-brand`)를 쓰거나 원본 `var(--sem-color-*)` 를 참조한다
+- Tailwind `@theme` 의 `--animate-*` 는 해당 유틸리티를 쓰는 소스가 없으면 CSS 에
+  출력되지 않는다. 컴포넌트보다 토큰을 먼저 추가하는 사이클에서는 스토리가 그 클래스를
+  한 번 써 줘야 산출물에 남고 검증도 가능하다
+- Radix prop 이 동시에 `tv()` variant 키인 컴포넌트(Separator 의 `orientation`)는
+  `VariantProps` 를 상속하지 않는다. 같은 이름이 두 경로로 들어와 타입이 충돌하므로
+  Radix 의 prop 타입을 그대로 variant 키로 쓴다
+- `layoutClass()` 계약을 고정하는 테스트를 Separator 스토리에 뒀다. `className` 에
+  `my-8 bg-danger` 를 넘기면 `my-8` 만 남는다. 우회하면 tailwind-merge 가 `bg-border` 를
+  밀어내고 룩앤필이 뚫린다는 것을 변이 테스트로 확인했다
+- Badge 의 밀도(padding)는 토큰이 아니라 고정 유틸리티(`px-1.5 py-0.5` / `px-2 py-0.5`)다.
+  배지 전용 밀도 슬롯은 두지 않았으므로 테마가 바꿀 수 없다. 모양은 `sem.radius.control`
+  을 따르므로(알약 고정이 아니다) brutalism 이 각진 배지를 만들 수 있다. size 는 sm/md
+  2종이다 — `text-lg` 배지는 쓸 자리가 없어 lg 는 요구가 생길 때 추가한다
+- 유틸리티 클래스가 의도한 슬롯으로 해석되는지 보려면, 같은 슬롯을 인라인
+  `var(--sem-color-*)` 로 참조하는 `hidden` 요소를 옆에 두고 계산색을 비교한다.
+  `hidden`(display:none) 요소도 계산색은 읽힌다. 다만 neutral 테마에서 `brand` 와 `info`
+  가 같은 blue.600 이므로 이 둘을 서로 바꾼 오타는 이 검사로 잡히지 않는다
+- Radix Tabs 의 `activationMode="manual"` 에서 선택을 일으키는 것은 Enter/Space 와
+  mousedown 이다. `automatic` 은 Trigger 의 `onFocus` 에서 선택한다. List 는 vertical·
+  horizontal 양쪽 모두 `aria-orientation` 을 명시하고, Content 는 `tabIndex={0}` 이라
+  패널 자체가 포커스를 받는다(그래서 content 슬롯에 focus-visible 링을 둔다)
+- 탭 넘침은 리스트의 `overflow-x-auto` 로 처리한다. 스크롤 영역 안에 포커스 가능한
+  트리거가 있으므로 axe 의 `scrollable-region-focusable` 을 위해 `tabIndex` 를 더할
+  필요가 없다
+- `--animate-*` 안의 `var()` 는 그 변수가 **선언된 요소**(`:root`)에서 치환된다. 따라서
+  모션 슬롯을 하위 요소에서 덮어써도 애니메이션 길이는 바뀌지 않는다 — 테마는 모션을
+  서브트리 단위로 바꿀 수 없다. `reduced-motion.css` 가 통하는 이유도 그것이 같은
+  `:root` 를 덮기 때문이다(미디어 쿼리 블록이 unlayered 로 테마 선언보다 뒤에 온다).
+  reduced-motion 테스트는 미디어 쿼리를 에뮬레이션하지 않고 `:root` 에 같은 덮어쓰기를
+  직접 넣어 확인한다
+- Accordion 은 `type` 에 기본값을 주지 않는다. 기본값을 주면 판별 유니온이 무너져
+  `onValueChange` 의 인자가 `string | string[]` 로 뭉개진다. `type="single"` 의
+  `collapsible` 기본값은 `false` 이므로(열린 항목을 닫을 수 없다) 대개 함께 넘겨야 한다
+- Radix Accordion Header 는 `Primitive.h3` 고정이다. `headingLevel` 은 `asChild` 로
+  요소를 갈아끼워 구현하고 2~6만 허용한다(h1 은 페이지 제목 자리다). height 전환
+  애니메이션은 Content 에, 패딩은 그 안쪽 `body` 에 둔다 — Content 에 패딩을 두면
+  전환이 패딩만큼 튄다
 
 ## 진행 중: v0.3 데이터 표시
+- Radix Collapsible 은 **마운트 직후 한 프레임 동안** 애니메이션을 억제한다
+  (`isMountAnimationPrevented` 가 rAF 에서 풀린다). 열림 전환을 검증하는 테스트는 클릭
+  전에 프레임을 넘겨야 하고, 그러지 않으면 `animationName` 이 `none` 으로 읽혀 간헐적으로
+  실패한다. 실제 사용자는 한 프레임 안에 클릭할 수 없어 제품 동작과는 무관하다
+- `--animate-*` 안의 `var(--sem-duration-base)` 는 그 커스텀 속성이 **선언된 요소**
+  (`:root`)에서 치환된다. 중간 래퍼에 슬롯을 덮어써도 이미 치환이 끝난 값이 상속될 뿐
+  바뀌지 않는다. `reduced-motion.css` 가 `:root` 를 겨냥하는 이유이며, 모션 슬롯을
+  부분 영역에만 다르게 적용하는 것은 이 구조에서 불가능하다
 - 컨텍스트(2026-09-29 착수): v0.2로 폼·피드백이 갖춰졌다. 데이터 표시 계층을 채워
   v0.5 테마 작업 전에 슬롯 부족을 드러낸다. 브랜치는 `feat/v0.3-components` 하나이며,
   새 컴포넌트 추가를 연속적인 변경으로 취급해 순차 커밋한다.
 - 핵심 기능 (모두 완료되면 릴리스). DoD 3요건(스토리 + `addon-a11y` 통과 + Vitest
   상호작용 테스트)을 갖춘 뒤 체크한다:
-  - [ ] Badge
-  - [ ] Separator
-  - [ ] Tabs
-  - [ ] Accordion
-  - [ ] Table (정적)
+  - [x] Badge
+  - [x] Separator
+  - [x] Tabs
+  - [x] Accordion
+  - [x] Table (정적)
   - [ ] DataTable (정렬·선택·페이지네이션)
 - 세부 step (한 사이클 = 한 커밋. 종료 게이트는 CI 순서 그대로
   `pnpm lint && pnpm build && pnpm format:check && pnpm typecheck && pnpm test`):
-  - [ ] 의미 슬롯 12개 추가 — 색 10개 + `sem.spacing.cell-x`/`cell-y`. 슬롯마다
-        `slots.json` + `themes/neutral/tokens/semantic/light.json` + `dark.json` 3파일 동시 갱신.
-        `tokens.stories.tsx`에 스와치를 추가해 light/dark 대비(solid 4.5:1, outline 테두리 3:1) 확인
-  - [ ] `motion.css`에 `accordion-down`/`accordion-up` keyframes +
-        `--animate-accordion-down`/`-up` 추가
-  - [ ] Separator — 가장 작은 컴포넌트로 빌드·테스트 경로를 먼저 뚫는다
-  - [ ] Badge — 24키 매트릭스를 전부 소비하므로 슬롯 정합성이 여기서 드러난다
-  - [ ] Tabs — `activationMode` 양쪽, horizontal/vertical, 넘침 시 가로 스크롤
-  - [ ] Accordion — `type` 판별 유니온, `headingLevel`, height 전환,
-        `prefers-reduced-motion`
-  - [ ] Table — 접근 가능한 이름이 있는 경우와 없는 경우를 각각 스토리로 만들어
-        `role="region"` 분기가 axe를 통과함을 증명한다
+  - [x] 의미 슬롯 12개 추가 — 색 10개 + `sem.spacing.cell-x`(1rem)/`cell-y`(0.5rem).
+        슬롯 41 → 53개. 색은 `slots.json` + `light.json` + `dark.json` 3파일, spacing은
+        모드 의존이 아니라 `slots.json` + `theme.json` 2파일이다.
+        `tokens.stories.tsx`에 `Tones`(6톤 × solid/subtle/outline 24키) + `Density` 스토리를
+        추가했다. `Tones`의 play가 `data-mode`를 light/dark로 토글하며 계산색으로 대비를
+        측정해 텍스트 4.5:1·테두리 3:1을 단언한다(전 조합 통과, 최저 light warning 테두리 3.19)
+  - [x] `motion.css`에 `accordion-down`/`accordion-up` keyframes +
+        `--animate-accordion-down`/`-up` 추가. 지속 시간은 `--sem-duration-base`,
+        가속도는 `enter`/`exit` 슬롯이다. `Motion` 스토리에 `animate-accordion-down`
+        한 행을 추가해 유틸리티 생성과 슬롯 참조(150ms)를 단언한다
+  - [x] Separator — 가장 작은 컴포넌트로 빌드·테스트 경로를 먼저 뚫는다.
+        스토리 4종(horizontal/vertical/decorative/레이아웃 오버라이드)
+  - [x] Badge — 24키 매트릭스를 전부 소비하므로 슬롯 정합성이 여기서 드러난다.
+        `compoundVariants` 18개(tone × appearance), size 2종(sm/md), 기본값
+        neutral·subtle·md. `Matrix` 스토리가 18조합의 계산색을 `--sem-color-*`
+        참조 요소와 비교해 슬롯 매핑을 고정한다
+  - [x] Tabs — `activationMode` 양쪽, horizontal/vertical, 넘침 시 가로 스크롤.
+        `items` 배열 API, underline 1종, 스토리 6종(기본/automatic/manual/vertical/
+        overflow/disabled)
+  - [x] Accordion — `type` 판별 유니온, `headingLevel`, height 전환,
+        `prefers-reduced-motion`. bordered 1종, 스토리 6종. `DistributiveOmit` 을
+        `utils/distributive-omit.ts` 로 빼 ToggleGroup 과 공유한다
+  - [x] Table — 접근 가능한 이름이 있는 경우와 없는 경우를 각각 스토리로 만들어
+        `role="region"` 분기가 axe를 통과함을 증명했다. 스토리 4종(이름 없음/caption/
+        aria-label/정렬·패딩). 모두 좁은 컨테이너로 실제 넘침 상태에서 검사한다
   - [ ] DataTable 정렬 — 3-state 순환, `aria-sort` 전이, `aria-live` 안내. 비제어·제어 스토리 2개
   - [ ] DataTable 선택 — 헤더 indeterminate, 현재 페이지 범위. **정렬 후 선택 유지**를
         `getRowId` 기준으로 테스트에 고정한다
@@ -86,7 +167,7 @@
   - [ ] 릴리스: changeset 작성 → PR squash merge(main에 커밋 하나) → 릴리스 PR 병합
 - v0.3 범위 밖: 컬럼 필터, 그룹핑·집계, 가상화, 컬럼 리사이즈·순서 변경, sticky header,
   다중 컬럼 정렬, 단일 선택(라디오) 행, 모바일 카드 전환
-- 다음 행동: `feat/v0.3-components` 브랜치 생성 완료. 의미 슬롯 12개 추가부터 시작한다
+- 다음 행동: Table 까지 완료(커밋 7개). 다음은 DataTable 정렬
 
 ## 다음 버전 (계획)
 - v0.4 레이아웃: Dialog(모달), Footer, TopNav, SideNav, Columns, BentoGrid
