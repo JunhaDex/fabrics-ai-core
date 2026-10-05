@@ -360,18 +360,20 @@ capability 목록이다.
     - [x] iOS 집약 지점: `Config/Pocket.xcconfig`(앱 차원, `POCKET_BUNDLE_ID`)를
           `Debug`·`Release.xcconfig`(환경 차원, `POCKET_START_URL`)가 include하고,
           `Config/Info.plist`가 `PocketStartURL`로 노출한다
-    - [ ] Android 앱 차원: `flavorDimensions`에 `app` 차원과 flavor 하나를 만들고
+    - [x] Android 앱 차원: `flavorDimensions`에 `app` 차원과 flavor 하나를 만들고
           `applicationId`를 `defaultConfig`에서 flavor로 옮긴다
-          → 검증: Build Variants에 `<flavor>Debug`·`<flavor>Release`가 표시되고,
+          → 검증: Build Variants에 `pocketDebug`·`pocketRelease`가 표시되고,
           APK의 패키지명이 `com.fabrics.pocket`이다
-    - [ ] Android 환경 차원: `buildFeatures.buildConfig = true`, buildType별
+    - [x] Android 환경 차원: `buildFeatures.buildConfig = true`, buildType별
           `buildConfigField("String", "START_URL", ...)`. debug는
           `http://localhost:3000`, release는 빈 문자열
           → 검증: 생성된 `BuildConfig`에 두 값이 각각 들어 있다
     - [ ] 실행 확인: Android는 에뮬레이터에서 debug variant, iOS는 이동한 경로의
           `ios/fabrics-pocket-ios.xcodeproj`를 Xcode로 열어 iOS 18 시뮬레이터에서
           실행한다 → 검증: 양쪽 템플릿 화면 표시
-    - [ ] Android 변경 커밋·push 후 이 step을 완료 처리한다
+    - [x] Android 변경 커밋·push (aos `f7e200c`). 실행 확인 후 이 step을 완료 처리한다
+    - S2까지의 기본 설정은 main에 직접 반영한다. S3부터 기능 추가는 feat 브랜치에서
+      작업하고 PR을 squash merge한다
   - [ ] S3 로컬 검증 환경 구축. 로그 영역을 갖춘 테스트 페이지, 원격 설정 JSON,
         debug 한정 평문 HTTP 설정, `adb reverse`를 포함한 개발 스크립트
   - [ ] S4 웹뷰 셸 (시작 URL 로딩, 오프라인·로딩 실패 화면)
