@@ -40,9 +40,47 @@
 - 표 시맨틱은 `<table>` + `<th scope="col">`이다. `role="grid"`는 쓰지 않는다 — 2D 방향키 내비게이션 계약까지 떠안게 된다
 - DataTable 엔진은 직접 구현한다. TanStack Table(v9.2.4 stable, 2026-08-04)을 쓰지 않는 이유는 (1) 범위인 단일 컬럼 정렬·페이지 단위 선택·페이지네이션이 `useState` + `useMemo`로 끝나고 (2) 필터·그룹핑·가상화는 **서버의 영역**이어서 API 쿼리 인자로 넘기므로 클라이언트 엔진이 필요 없고 (3) `@tanstack/react-store`라는 두 번째 상태 런타임을 디자인 시스템에 들이지 않기 위해서다
 - DataTable 상태는 기존 컨트롤과 같은 제어/비제어 양쪽 패턴(`sort`/`defaultSort`/`onSortChange`, `page`/`onPageChange`)을 쓴다. 제어형이 서버 사이드 정렬·페이징의 연결점이다. 행 식별은 `getRowId` 필수 prop으로 받는다 — index 폴백은 정렬 후 선택이 어긋난다
+- 정렬 비교는 열마다 `sortValue?: (row) => string | number` 로 받고, **이 함수의 존재가
+  정렬 가능 여부**다(`sortable` 플래그를 따로 두지 않는다 — 플래그만 있고 비교값이 없는
+  잘못된 조합을 타입에서 없앤다). `cell` 은 `ReactNode` 를 돌려주므로 비교에 쓸 수 없다.
+  문자열 비교는 라이브러리가 `localeCompare` 로 한 곳에서 책임진다 — 소비 프로젝트가
+  `a > b` 를 쓰면 한글·대소문자 혼용에서 틀린 순서가 나온다. 스칼라로 표현할 수 없는
+  열(날짜 객체, nulls-last, 다중 키)이 나오면 그때 `compare?: (a, b) => number` 를
+  비파괴적으로 추가한다
+- 열 정의를 `value` 접근자 하나로 통일해 정렬·필터·내보내기가 공유하는 설계는 택하지
+  않았다. 필터·그룹핑은 서버의 영역으로 이미 결정했으므로 재사용 상대가 오지 않고,
+  `value`/`cell` 두 렌더 경로와 "둘 중 하나는 반드시 있어야 한다"는 불변식만 남는다
+- 현재 정렬 상태는 `TableColumn.ariaSort`(`'none' | 'ascending' | 'descending'`)로
+  Table 이 `<th>` 에 싣는다. `headerProps` 범용 통과 경로는 쓰지 않는다 — 그것이
+  서비스할 기능(열 리사이즈·순서, sticky header, 다중 정렬, 열 그룹)이 전부 v0.3 범위
+  밖이고, `headerProps.className` 이 className 정책을 우회하는 구멍이 된다. v0.4 에서
+  sticky header 가 들어오면 타입을 넓히는 방향으로 승격한다
+- 제어 판정은 `sort !== undefined` 다. `null` 이 "정렬 없음" 이라는 유효한 제어값이므로
+  `!= null` 로 판정하면 제어형이 깨진다
 - 정렬은 단일 컬럼 3-state(asc→desc→none)다. 트리거는 `<th>` 안의 `<button>`이고, `aria-sort`와 함께 `aria-live="polite"` 안내 영역을 둔다. `aria-sort` 변경만으로는 대부분의 스크린 리더가 즉시 읽지 않는다
 - 선택은 다중 체크박스만 지원하고, 헤더 전체선택 범위는 현재 페이지다. 행 클릭 선택은 넣지 않는다 — 행 안의 링크·버튼과 충돌한다
-- 페이지네이션 UI는 prev/next + `x–y / z` + 페이지 크기 `Select`다. 페이지 번호 버튼은 말줄임 로직이 붙어 제외하고, `Pagination` 독립 export도 하지 않는다
+- **`<tr>` 에 `aria-selected` 를 쓸 수 없다.** `role="grid"`/`treegrid` 안의 row 에만 허용되는
+  속성이라 일반 표에서는 axe `aria-allowed-attr` 위반이다. 선택 상태의 전달은 행 체크박스의
+  checked 가 담당하고, 행 틴트는 순수 시각 표현(`data-selected` + `brand-subtle`)이다
+- 선택은 `selectable` 명시 스위치로 켠다. "선택 prop 이 하나라도 있으면 켜짐" 이라는 암묵
+  규칙은 `selectedIds` 만 넘기고 스위치를 깜빡한 경우가 조용히 무시된다
+- 행 체크박스의 접근 가능한 이름은 `getRowLabel`(기본값 `getRowId`)로 만든다. id 가 UUID 인
+  프로젝트에서는 id 를 그대로 읽어 주면 스크린 리더에 쓸모가 없다
+- 선택 열은 예약 키 `'__select'` 로 DataTable 이 맨 앞에 끼워 넣는다. Table 은 선택 열의
+  존재를 모른다. 스토리에서 열 위치를 index 로 집으면 선택 열 때문에 밀리므로, 헤더
+  텍스트로 열을 찾는다
+- 페이지네이션 UI는 prev/next + `x–y / z` + 페이지 크기 `Select`다. 페이지 번호 버튼은 말줄임 로직이 붙어 제외하고, `Pagination` 독립 export도 하지 않는다. `<nav aria-label="페이지 이동">` 으로 감싸고 범위 텍스트에 `aria-live="polite"` 를 둔다
+- 페이지 번호는 1-based 다. 표시가 `1–2 / 5` 인데 prop 만 0-based 면 혼란이 크다
+- 페이지 보정은 **파생값 clamp**(`Math.min(page, lastPage)`)다. 핸들러에서 보정하지 않는
+  이유는 (1) 페이지 크기 변경뿐 아니라 `rows` 가 바깥에서 줄어도 범위를 벗어나므로 한
+  규칙으로 둘 다 막고 (2) 렌더 중에 `onPageChange` 를 부르는 것은 부작용이기 때문이다.
+  제어형에서는 표시만 보정하고 부모의 `page` 값은 그대로 둔다. clamp 를 빼면 범위
+  텍스트가 `21–5 / 5` 같은 값이 된다(변이 테스트로 확인)
+- Table 의 `loading` 은 Skeleton 행 **3개 고정**이고 `<table aria-busy>` 가 된다. 행 수를
+  prop 으로 열지 않는다. `emptyMessage` 는 `colSpan` 셀 하나로 그리므로 열 수를 아는
+  Table 이 가진다
+- 선택 열이 켜지면 `loading`/`emptyMessage`/`caption` 은 DataTable 이 따로 선언하지 않고
+  `TableProps` 상속 + spread 로 Table 에 흘러간다
 - Table의 접근 가능한 이름(`caption`/`aria-label`)은 선택 prop이다. 이름이 있으면 가로 스크롤 래퍼에 `role="region"`을 붙이고, 없으면 생략한다. `tabIndex={0}`은 **이름과 무관하게 항상** 붙인다 (아래 측정 결과 참고)
 - `<caption>`은 테이블의 이름이지 스크롤 래퍼의 이름이 아니다. `caption`만 준 경우 래퍼
   region 은 `useId()` 로 만든 `aria-labelledby` 로 caption 을 가리켜야 이름을 갖는다
@@ -111,63 +149,10 @@
   요소를 갈아끼워 구현하고 2~6만 허용한다(h1 은 페이지 제목 자리다). height 전환
   애니메이션은 Content 에, 패딩은 그 안쪽 `body` 에 둔다 — Content 에 패딩을 두면
   전환이 패딩만큼 튄다
-
-## 진행 중: v0.3 데이터 표시
 - Radix Collapsible 은 **마운트 직후 한 프레임 동안** 애니메이션을 억제한다
   (`isMountAnimationPrevented` 가 rAF 에서 풀린다). 열림 전환을 검증하는 테스트는 클릭
   전에 프레임을 넘겨야 하고, 그러지 않으면 `animationName` 이 `none` 으로 읽혀 간헐적으로
   실패한다. 실제 사용자는 한 프레임 안에 클릭할 수 없어 제품 동작과는 무관하다
-- `--animate-*` 안의 `var(--sem-duration-base)` 는 그 커스텀 속성이 **선언된 요소**
-  (`:root`)에서 치환된다. 중간 래퍼에 슬롯을 덮어써도 이미 치환이 끝난 값이 상속될 뿐
-  바뀌지 않는다. `reduced-motion.css` 가 `:root` 를 겨냥하는 이유이며, 모션 슬롯을
-  부분 영역에만 다르게 적용하는 것은 이 구조에서 불가능하다
-- 컨텍스트(2026-09-29 착수): v0.2로 폼·피드백이 갖춰졌다. 데이터 표시 계층을 채워
-  v0.5 테마 작업 전에 슬롯 부족을 드러낸다. 브랜치는 `feat/v0.3-components` 하나이며,
-  새 컴포넌트 추가를 연속적인 변경으로 취급해 순차 커밋한다.
-- 핵심 기능 (모두 완료되면 릴리스). DoD 3요건(스토리 + `addon-a11y` 통과 + Vitest
-  상호작용 테스트)을 갖춘 뒤 체크한다:
-  - [x] Badge
-  - [x] Separator
-  - [x] Tabs
-  - [x] Accordion
-  - [x] Table (정적)
-  - [ ] DataTable (정렬·선택·페이지네이션)
-- 세부 step (한 사이클 = 한 커밋. 종료 게이트는 CI 순서 그대로
-  `pnpm lint && pnpm build && pnpm format:check && pnpm typecheck && pnpm test`):
-  - [x] 의미 슬롯 12개 추가 — 색 10개 + `sem.spacing.cell-x`(1rem)/`cell-y`(0.5rem).
-        슬롯 41 → 53개. 색은 `slots.json` + `light.json` + `dark.json` 3파일, spacing은
-        모드 의존이 아니라 `slots.json` + `theme.json` 2파일이다.
-        `tokens.stories.tsx`에 `Tones`(6톤 × solid/subtle/outline 24키) + `Density` 스토리를
-        추가했다. `Tones`의 play가 `data-mode`를 light/dark로 토글하며 계산색으로 대비를
-        측정해 텍스트 4.5:1·테두리 3:1을 단언한다(전 조합 통과, 최저 light warning 테두리 3.19)
-  - [x] `motion.css`에 `accordion-down`/`accordion-up` keyframes +
-        `--animate-accordion-down`/`-up` 추가. 지속 시간은 `--sem-duration-base`,
-        가속도는 `enter`/`exit` 슬롯이다. `Motion` 스토리에 `animate-accordion-down`
-        한 행을 추가해 유틸리티 생성과 슬롯 참조(150ms)를 단언한다
-  - [x] Separator — 가장 작은 컴포넌트로 빌드·테스트 경로를 먼저 뚫는다.
-        스토리 4종(horizontal/vertical/decorative/레이아웃 오버라이드)
-  - [x] Badge — 24키 매트릭스를 전부 소비하므로 슬롯 정합성이 여기서 드러난다.
-        `compoundVariants` 18개(tone × appearance), size 2종(sm/md), 기본값
-        neutral·subtle·md. `Matrix` 스토리가 18조합의 계산색을 `--sem-color-*`
-        참조 요소와 비교해 슬롯 매핑을 고정한다
-  - [x] Tabs — `activationMode` 양쪽, horizontal/vertical, 넘침 시 가로 스크롤.
-        `items` 배열 API, underline 1종, 스토리 6종(기본/automatic/manual/vertical/
-        overflow/disabled)
-  - [x] Accordion — `type` 판별 유니온, `headingLevel`, height 전환,
-        `prefers-reduced-motion`. bordered 1종, 스토리 6종. `DistributiveOmit` 을
-        `utils/distributive-omit.ts` 로 빼 ToggleGroup 과 공유한다
-  - [x] Table — 접근 가능한 이름이 있는 경우와 없는 경우를 각각 스토리로 만들어
-        `role="region"` 분기가 axe를 통과함을 증명했다. 스토리 4종(이름 없음/caption/
-        aria-label/정렬·패딩). 모두 좁은 컨테이너로 실제 넘침 상태에서 검사한다
-  - [ ] DataTable 정렬 — 3-state 순환, `aria-sort` 전이, `aria-live` 안내. 비제어·제어 스토리 2개
-  - [ ] DataTable 선택 — 헤더 indeterminate, 현재 페이지 범위. **정렬 후 선택 유지**를
-        `getRowId` 기준으로 테스트에 고정한다
-  - [ ] DataTable 페이지네이션 — 페이지 크기 변경 시 현재 페이지 보정, 마지막 페이지
-        경계, `loading`(Skeleton 행) + `emptyMessage`
-  - [ ] 릴리스: changeset 작성 → PR squash merge(main에 커밋 하나) → 릴리스 PR 병합
-- v0.3 범위 밖: 컬럼 필터, 그룹핑·집계, 가상화, 컬럼 리사이즈·순서 변경, sticky header,
-  다중 컬럼 정렬, 단일 선택(라디오) 행, 모바일 카드 전환
-- 다음 행동: Table 까지 완료(커밋 7개). 다음은 DataTable 정렬
 
 ## 다음 버전 (계획)
 - v0.4 레이아웃: Dialog(모달), Footer, TopNav, SideNav, Columns, BentoGrid
@@ -175,6 +160,7 @@
 - v0.6 fabrics 도메인 컴포넌트: 목록은 첫 소비 프로젝트 기획 시 확정
 
 ## 완료
+- v0.3.0 (2026-10-05) 데이터 표시 컴포넌트: Badge, Separator, Tabs, Accordion, Table, DataTable(단일 열 정렬·다중 선택·클라이언트 페이지네이션)을 DoD 3요건으로 완성. 톤 매트릭스(6톤 × solid/subtle/outline)와 셀 패딩 슬롯으로 의미 슬롯 41 → 53개, 대비 기준(텍스트 4.5:1·테두리 3:1) 적용으로 기존 테마 값 4개 변경(dark Button primary·danger 글자색 반전). 테스트 81 → 118개
 - v0.2.0 (2026-09-28) 폼/피드백 컴포넌트: 폼 11종(Label, Input, Textarea, Field, Checkbox, RadioGroup, Switch, Select, Slider, Toggle, ToggleGroup)과 피드백 7종(Alert, Toast, Tooltip, Popover, Progress, Spinner, Skeleton)을 DoD 3요건으로 완성. 기반 레이어로 아이콘(`lucide` + `<Icon>`)과 모션 토큰을 추가하고, 의미 슬롯을 22 → 41개로 늘렸다. 도구 정비로 ESLint+Prettier 공통 설정(oxlint 제거), `a11y.test: 'error'` 승격, PR CI 워크플로를 도입했다. 테스트 6 → 81개
 - v0.1.1 (2026-09-22) 패키지 README: 레지스트리 페이지용 README 3종 추가. 릴리스 워크플로를 `changesets/action@v2`로 전환해 패키지별 태그·GitHub Release 자동 생성 복구, 저장소 레벨 `vX.Y.Z` 태그 생성 step 추가
 - v0.1.0 (2026-09-22) 최초 골격: 토큰→테마→코어→Storybook 파이프라인 연결. `packages/tokens`(DTCG primitives/semantic, `@theme` CSS 변수), `packages/core`(Button variant 4·size 3·`asChild`, `layoutClass`, tsdown), `themes/neutral`(light/dark 단일 번들), `apps/storybook`(`data-mode` 툴바). changesets → CHANGELOG → 태그 → GitHub Packages publish 파이프라인 검증 완료
@@ -183,6 +169,13 @@
 - 로컬 설치 검증(`npm view @junhadex/core`): `.zshrc`에 `GITHUB_TOKEN_PKG`(classic PAT, `read:packages`) 설정 후 확인 필요. 0.1.1 tarball에 README가 포함된 것은 `npm pack --dry-run`으로 확인함
 - fabrics 도메인 컴포넌트 v1 목록 (첫 소비 프로젝트 기획 시)
 - v0.3에서 제외한 표 기능(다중 컬럼 정렬, 단일 선택 행, sticky header, 모바일 카드 전환, 독립 `Pagination` export). 실제 요구가 생길 때 추가한다
+- **서버 사이드 페이징·정렬은 v0.3에서 동작하지 않는다.** 페이지네이션은 클라이언트
+  사이드 전용이다 — `rows` 전체를 받아 잘라 쓰므로, 서버가 이미 잘라 준 한 페이지를
+  넘기면 다시 잘려 빈 표가 된다. 서버 페이징에는 `totalRows`(또는 `manualPagination`)
+  prop 이 필요하다. 정렬도 같은 성질이 약하게 있다: 제어형이어도 DataTable 이
+  `sortValue` 로 다시 로컬 정렬하므로, 서버가 다른 기준(다중 키·다른 콜레이션)으로
+  정렬했다면 그 순서를 덮는다. `page`/`sort` 제어 자체는 URL 동기화 용도로 유효하다.
+  첫 소비 프로젝트가 서버 페이징을 요구할 때 함께 설계한다
 - Calendar/DatePicker 설계 전반. 착수 조건은 실사용 프로젝트의 요구사항 확정(선택 모드(단일/범위/다중), 시간대 취급, 입력 포맷, 로캘, 주 시작일)
 - `packages/tokens`·`themes/neutral`(빌드 스크립트 JS)을 린트 대상에 넣을지. 현재는 제외했고, 필요해지면 `@repo/eslint-config`에 base 설정을 추가한다
 - `layoutClass()`를 거치지 않은 className 전달을 잡는 커스텀 ESLint 규칙. 컴포넌트가 쌓인 뒤 작성한다

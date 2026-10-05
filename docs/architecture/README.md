@@ -10,4 +10,4 @@
 
 | 문서 | 내용 | 상태 |
 |---|---|---|
-| `app-pocket-bridge.md` | pocket 브릿지 계약의 잠정 정의 (이벤트명, 페이로드, capability 이름 체계, 오류 형식, UA 토큰 형식) | 미작성. `../app-pocket-todo.md`의 S1에서 작성한다 |
+| `app-pocket-bridge.md` | pocket 브릿지 계약의 잠정 정의 (이벤트명, 페이로드, capability 이름 체계, 오류 형식, UA 토큰 형식) | 잠정안 (v0.1). 안정화 후 `app-bridge`로 이관 |
