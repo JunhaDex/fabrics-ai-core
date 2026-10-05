@@ -343,36 +343,23 @@ capability 목록이다.
   - [ ] 브릿지 계약의 잠정 정의 문서화 (이벤트명, 페이로드, capability 이름
         체계, 오류 형식, UA 토큰 형식). 안정화 후 `app-bridge`로 이관
 - 세부 step:
-  - [ ] S0 개발 환경 준비. Android Studio와 SDK, 에뮬레이터 이미지를 설치하고
+  - [x] S0 개발 환경 준비. Android Studio와 SDK, 에뮬레이터 이미지를 설치하고
         `adb`를 PATH에 등록한다. Xcode는 이미 설치되어 있다
   - [ ] S1 브릿지 계약 잠정 정의 문서 작성(`docs/architecture/app-pocket-bridge.md`).
         핵심 기능 목록에서는 마지막이지만 구현보다 앞선다. 두 플랫폼이 같은
         계약을 구현하고 서브에이전트가 양쪽을 나눠 작업하므로, 이벤트명과
         페이로드, capability 이름 체계, 오류 형식, UA 토큰 형식이 먼저 고정되지
         않으면 두 구현이 어긋난다
-  - [ ] S2 양 플랫폼 프로젝트 골격 생성. Android는 Empty Activity(Compose),
-        iOS는 App(SwiftUI) 템플릿이다. 생성 직후 `minSdk 31`과 Deployment
-        Target `18.0`을 지정하고, 빌드 설정 집약 지점(product flavor, xcconfig)을
-        이 시점에 만든다. 나중에 도입하면 흩어진 값을 회수하는 작업이 된다.
-        `.gitignore`와 `cliff.toml`도 함께 배치한다
-    - [x] 양 플랫폼 템플릿 생성, `minSdk 31`·Deployment Target `18.0`,
-          `.gitignore`·`cliff.toml` 배치 (aos `61e1f2d`, ios `11c9535`)
-    - [x] iOS 집약 지점: `Config/Pocket.xcconfig`(앱 차원, `POCKET_BUNDLE_ID`)를
-          `Debug`·`Release.xcconfig`(환경 차원, `POCKET_START_URL`)가 include하고,
-          `Config/Info.plist`가 `PocketStartURL`로 노출한다
-    - [x] Android 앱 차원: `flavorDimensions`에 `app` 차원과 flavor 하나를 만들고
-          `applicationId`를 `defaultConfig`에서 flavor로 옮긴다
-          → 검증: Build Variants에 `pocketDebug`·`pocketRelease`가 표시되고,
-          APK의 패키지명이 `com.fabrics.pocket`이다
-    - [x] Android 환경 차원: `buildFeatures.buildConfig = true`, buildType별
-          `buildConfigField("String", "START_URL", ...)`. debug는
-          `http://localhost:3000`, release는 빈 문자열
-          → 검증: 생성된 `BuildConfig`에 두 값이 각각 들어 있다
-    - [ ] 실행 확인: Android는 에뮬레이터에서 debug variant, iOS는 이동한 경로의
-          `ios/fabrics-pocket-ios.xcodeproj`를 Xcode로 열어 iOS 18 시뮬레이터에서
-          실행한다 → 검증: 양쪽 템플릿 화면 표시
-    - [x] Android 변경 커밋·push (aos `f7e200c`). 실행 확인 후 이 step을 완료 처리한다
-    - S2까지의 기본 설정은 main에 직접 반영한다. S3부터 기능 추가는 feat 브랜치에서
+  - [x] S2 양 플랫폼 프로젝트 골격 생성 (aos `61e1f2d`·`f7e200c`, ios `11c9535`).
+        Android는 Empty Activity(Compose), iOS는 App(SwiftUI) 템플릿이며 `minSdk 31`과
+        Deployment Target `18.0`을 지정했다. 빌드 설정 집약 지점은 다음과 같다
+    - Android: `pocket` flavor(`app` 차원)가 `applicationId`를, buildType별
+      `BuildConfig.START_URL`이 시작 URL을 갖는다
+    - iOS: `Config/Pocket.xcconfig`(앱 차원, `POCKET_BUNDLE_ID`)를
+      `Debug`·`Release.xcconfig`(환경 차원, `POCKET_START_URL`)가 include하고,
+      `Config/Info.plist`가 `PocketStartURL`로 노출한다
+    - release 시작 URL은 외부 HTTPS 도메인 확보 전까지 빈 값이다
+    - S2까지의 기본 설정은 main에 직접 반영했다. S3부터 기능 추가는 feat 브랜치에서
       작업하고 PR을 squash merge한다
   - [ ] S3 로컬 검증 환경 구축. 로그 영역을 갖춘 테스트 페이지, 원격 설정 JSON,
         debug 한정 평문 HTTP 설정, `adb reverse`를 포함한 개발 스크립트
@@ -386,8 +373,8 @@ capability 목록이다.
   - [ ] S9 강제 업데이트
   - [ ] S10 링크 오픈 브릿지 (1) 기본 브라우저로 열기
   - [ ] S11 링크 오픈 브릿지 (2). 도메인 확보 이후에 진행한다
-- 다음 행동: S0와 S1을 병행한다. 사용자가 Android 개발 환경을 설치하는 동안
-  세션은 브릿지 계약 잠정 정의 문서의 초안을 작성한다
+- 다음 행동: S1 브릿지 계약 잠정 정의 문서를 작성한다. 이후 S3부터 feat
+  브랜치에서 진행한다
 
 ## 다음 버전 (계획)
 
