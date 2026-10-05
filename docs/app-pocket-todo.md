@@ -106,6 +106,13 @@ Slack: `C0C52CS9QFK`
   `applicationId`, iOS는 xcconfig의 `POCKET_BUNDLE_ID`를
   `PRODUCT_BUNDLE_IDENTIFIER`가 참조하는 형태다. 2단계에서는 그 한 곳의 값을
   config 저장소에서 읽어오도록 교체한다
+- **런타임 자체의 이름은 앱마다 바뀌지 않으므로 소스에 고정한다.** Android
+  `namespace`는 `com.fabrics.pocket`, iOS 타깃·Product Name은
+  `fabrics-pocket-ios`(Swift 모듈명 `fabrics_pocket_ios`)다. `namespace`는
+  스토어에 노출되지 않고 `applicationId`와 같을 필요가 없다
+  - 주의: flavor에 `applicationId`가 없으면 AGP는 `namespace`를 대신 쓴다.
+    2단계에서 주입 값이 비면 오류 없이 `com.fabrics.pocket`으로 빌드되므로,
+    그때 값이 비어 있으면 빌드를 실패시킨다
 - 파생 영향: App Link 검증은 `applicationId`와 서명 인증서 지문에 묶이므로
   `assetlinks.json`이 앱별로 달라진다. iOS의 Associated Domains entitlement도
   번들 식별자를 참조하므로 entitlements 파일이 변수화 대상이다
@@ -348,6 +355,23 @@ capability 목록이다.
         Target `18.0`을 지정하고, 빌드 설정 집약 지점(product flavor, xcconfig)을
         이 시점에 만든다. 나중에 도입하면 흩어진 값을 회수하는 작업이 된다.
         `.gitignore`와 `cliff.toml`도 함께 배치한다
+    - [x] 양 플랫폼 템플릿 생성, `minSdk 31`·Deployment Target `18.0`,
+          `.gitignore`·`cliff.toml` 배치 (aos `61e1f2d`, ios `11c9535`)
+    - [x] iOS 집약 지점: `Config/Pocket.xcconfig`(앱 차원, `POCKET_BUNDLE_ID`)를
+          `Debug`·`Release.xcconfig`(환경 차원, `POCKET_START_URL`)가 include하고,
+          `Config/Info.plist`가 `PocketStartURL`로 노출한다
+    - [ ] Android 앱 차원: `flavorDimensions`에 `app` 차원과 flavor 하나를 만들고
+          `applicationId`를 `defaultConfig`에서 flavor로 옮긴다
+          → 검증: Build Variants에 `<flavor>Debug`·`<flavor>Release`가 표시되고,
+          APK의 패키지명이 `com.fabrics.pocket`이다
+    - [ ] Android 환경 차원: `buildFeatures.buildConfig = true`, buildType별
+          `buildConfigField("String", "START_URL", ...)`. debug는
+          `http://localhost:3000`, release는 빈 문자열
+          → 검증: 생성된 `BuildConfig`에 두 값이 각각 들어 있다
+    - [ ] 실행 확인: Android는 에뮬레이터에서 debug variant, iOS는 이동한 경로의
+          `ios/fabrics-pocket-ios.xcodeproj`를 Xcode로 열어 iOS 18 시뮬레이터에서
+          실행한다 → 검증: 양쪽 템플릿 화면 표시
+    - [ ] Android 변경 커밋·push 후 이 step을 완료 처리한다
   - [ ] S3 로컬 검증 환경 구축. 로그 영역을 갖춘 테스트 페이지, 원격 설정 JSON,
         debug 한정 평문 HTTP 설정, `adb reverse`를 포함한 개발 스크립트
   - [ ] S4 웹뷰 셸 (시작 URL 로딩, 오프라인·로딩 실패 화면)
