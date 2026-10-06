@@ -166,6 +166,7 @@
 - v0.1.0 (2026-09-22) 최초 골격: 토큰→테마→코어→Storybook 파이프라인 연결. `packages/tokens`(DTCG primitives/semantic, `@theme` CSS 변수), `packages/core`(Button variant 4·size 3·`asChild`, `layoutClass`, tsdown), `themes/neutral`(light/dark 단일 번들), `apps/storybook`(`data-mode` 툴바). changesets → CHANGELOG → 태그 → GitHub Packages publish 파이프라인 검증 완료
 
 ## 미확정 사항
+- **`@junhadex/core`가 `tailwind-merge`를 의존성으로 선언하지 않는다** (stylist-web에서 발견, 2026-10-06). `tailwind-variants`는 이를 선택적 peer로 두므로, 소비 프로젝트에 설치되지 않으면 className conflict resolution이 꺼진다. `layoutClass()` 변이 테스트는 이 동작을 전제한다. core의 dependencies에 선언하는 방향으로 이 세션에서 처리한다
 - 로컬 설치 검증(`npm view @junhadex/core`): `.zshrc`에 `GITHUB_TOKEN_PKG`(classic PAT, `read:packages`) 설정 후 확인 필요. 0.1.1 tarball에 README가 포함된 것은 `npm pack --dry-run`으로 확인함
 - fabrics 도메인 컴포넌트 v1 목록 (첫 소비 프로젝트 기획 시)
 - v0.3에서 제외한 표 기능(다중 컬럼 정렬, 단일 선택 행, sticky header, 모바일 카드 전환, 독립 `Pagination` export). 실제 요구가 생길 때 추가한다

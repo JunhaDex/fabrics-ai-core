@@ -67,6 +67,7 @@
 | common-design | 구축중 | `projects/common-design/` |
 | app-pocket | 구축중 | `projects/app-pocket/` (컨테이너, 하위 `aos/`·`ios/`) |
 | app-bridge | 기획 | `projects/app-bridge/` |
+| stylist-web | 구축중 | `projects/stylist-web/` |
 
 ## 세션 전환 기준
 아래 조건이 충족되면 루트 세션을 종료하고, 해당 프로젝트 디렉터리에서

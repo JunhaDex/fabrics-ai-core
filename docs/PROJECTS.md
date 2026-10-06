@@ -10,6 +10,7 @@
 | common-design | 구축중 | https://github.com/JunhaDex/fabrics-design-system | `projects/common-design/` | 테마(빌드)·모드(런타임) 2층위 스타일을 지원하는 fabrics 공통 디자인 시스템 (React, Radix, Tailwind v4, npm) | — |
 | app-pocket | 구축중 | https://github.com/JunhaDex/fabrics-pocket-aos · https://github.com/JunhaDex/fabrics-pocket-ios | `projects/app-pocket/aos/`, `projects/app-pocket/ios/` | 웹앱 주소만 바꿔 끼우면 새 앱이 되는 OS별 웹뷰 컨테이너. 웹앱에 기기 기능 브릿지를 제공 (Kotlin, Swift) | ADR 0005 |
 | app-bridge | 기획 | (미정) `fabrics-pocket-bridge` | `projects/app-bridge/` | pocket 브릿지 계약의 TypeScript 타입과 런타임 헬퍼. 웹앱이 의존하는 npm 패키지 | — |
+| stylist-web | 구축중 | https://github.com/JunhaDex/fabrics-stylist-web | `projects/stylist-web/` | 옷장 등록과 TPO 코디 추천 웹앱. pocket에 처음 탑재되는 웹앱 (Next.js Multi-Zones, Turborepo). 저장소 이름은 가칭 | — |
 
 ## 상태 값 정의
 - **기획**: 루트 세션에서 구조/요구사항을 논의 중. 아직 별도 저장소 없음.
