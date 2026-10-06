@@ -154,8 +154,53 @@
   전에 프레임을 넘겨야 하고, 그러지 않으면 `animationName` 이 `none` 으로 읽혀 간헐적으로
   실패한다. 실제 사용자는 한 프레임 안에 클릭할 수 없어 제품 동작과는 무관하다
 
+## 진행 중: v0.4 레이아웃
+- 컨텍스트(2026-10-06 범위 확정): 첫 소비 프로젝트 stylist-web 이 `@repo/ui` 에 로컬
+  AppShell(TopBar, SideNav, BottomTabBar)을 만들었다(`feat/v0.1`, 3c8fd80). 이 구현을
+  요구사항 입력으로 삼아 내비게이션을 core 로 승격하고, 이어서 나머지 레이아웃을 채운다.
+  stylist-web 은 v0.4 릴리스 후 로컬 구현을 core 컴포넌트로 교체한다
+- 범위 결정
+  - 내비게이션을 먼저 만든다(stylist-web 이 대기 중). BottomTabBar 를 v0.4 에 추가하고,
+    계획의 TopNav 는 링크 없는 헤더이므로 이름을 TopBar 로 바꾼다
+  - 내비 항목은 `{ href, label, icon, current? }` 배열이다. 활성 판정은 소비자가 한다
+    (`current` 가 true 면 `aria-current="page"`). core 는 라우터(`next/navigation`)에
+    의존하지 않는다
+  - 링크 요소는 `linkComponent` prop 으로 바꿔 끼운다(기본 `'a'`). 받은 컴포넌트에
+    `href`·`className`·`aria-current`·`children` 을 넘긴다. zone 경계에서 `<a>`/`<Link>` 를
+    고르는 것은 소비자의 링크 컴포넌트가 href 로 판단한다
+  - 반응형 전환(모바일 BottomTabBar ↔ PC SideNav)은 컴포넌트가 스스로 숨지 않는다.
+    소비자가 `className` 의 display 유틸리티(`md:hidden` 등, 레이아웃 속성)로 정한다.
+    AppShell 조합은 프로젝트 몫이라 core 에 넣지 않는다
+  - TopBar 는 `brand`·`actions`(ReactNode) 슬롯, sticky, safe-area 는 컴포넌트가 처리한다
+  - Dialog: `trigger`·`title`(필수)·`description`·`children`·`footer`, `open`/`onOpenChange`/
+    `defaultOpen` 제어·비제어. AlertDialog 는 별도 컴포넌트(Radix AlertDialog,
+    `confirmLabel`/`cancelLabel`/`onConfirm`, `tone`). `md` 미만에서는 하단 시트 형태로
+    CSS 반응형 전환한다(스와이프 닫기는 범위 밖)
+- 핵심 기능 (모두 완료되면 릴리스). DoD 3요건을 갖춘 뒤 체크한다:
+  - [ ] TopBar
+  - [ ] SideNav
+  - [ ] BottomTabBar
+  - [ ] Dialog
+  - [ ] AlertDialog
+  - [ ] Footer
+  - [ ] Columns
+  - [ ] BentoGrid
+- 세부 step (한 사이클 = 한 커밋. 종료 게이트는 CI 순서 그대로
+  `pnpm lint && pnpm build && pnpm format:check && pnpm typecheck && pnpm test`):
+  - [ ] 의미 슬롯 추가 — 컴포넌트보다 먼저. stylist-web 로컬 구현의 하드코딩 값이 후보다:
+        z-index 계층(sticky 바·오버레이·토스트), 바 높이(`h-14`), 사이드 내비 폭(`w-56`),
+        오버레이 scrim 색(모드 의존), 오버레이 그림자. Dialog 열림/닫힘 keyframes
+  - [ ] TopBar
+  - [ ] SideNav + BottomTabBar (항목 타입·`linkComponent` 공유)
+  - [ ] Dialog
+  - [ ] AlertDialog
+  - [ ] Footer
+  - [ ] Columns
+  - [ ] BentoGrid — 항목 배치(col/row span)를 props 로 받을지 `className` 으로 받을지 이 step 에서 정한다
+  - [ ] 릴리스: changeset 작성 → PR squash merge → 릴리스 PR 병합
+- 다음 행동: `feat/v0.4-layout` 브랜치를 만들고 의미 슬롯 step 부터 진행한다
+
 ## 다음 버전 (계획)
-- v0.4 레이아웃: Dialog(모달), Footer, TopNav, SideNav, Columns, BentoGrid
 - v0.5 테마: brutalism, tactile-surface (v0.2~0.4 컴포넌트로 슬롯·스타일 레이어 검증)
 - v0.6 fabrics 도메인 컴포넌트: 목록은 첫 소비 프로젝트 기획 시 확정
 
@@ -166,7 +211,7 @@
 - v0.1.0 (2026-09-22) 최초 골격: 토큰→테마→코어→Storybook 파이프라인 연결. `packages/tokens`(DTCG primitives/semantic, `@theme` CSS 변수), `packages/core`(Button variant 4·size 3·`asChild`, `layoutClass`, tsdown), `themes/neutral`(light/dark 단일 번들), `apps/storybook`(`data-mode` 툴바). changesets → CHANGELOG → 태그 → GitHub Packages publish 파이프라인 검증 완료
 
 ## 미확정 사항
-- **`@junhadex/core`가 `tailwind-merge`를 의존성으로 선언하지 않는다** (stylist-web에서 발견, 2026-10-06). `tailwind-variants`는 이를 선택적 peer로 두므로, 소비 프로젝트에 설치되지 않으면 className conflict resolution이 꺼진다. `layoutClass()` 변이 테스트는 이 동작을 전제한다. core의 dependencies에 선언하는 방향으로 이 세션에서 처리한다
+- `@storybook/addon-vitest` 10.6.0 의 peer 는 vitest ^3 || ^4 인데 설치본은 5.0.1 이라 `pnpm install` 에서 peer 경고가 난다. 테스트는 통과한다. Storybook 갱신 시 함께 확인한다
 - 로컬 설치 검증(`npm view @junhadex/core`): `.zshrc`에 `GITHUB_TOKEN_PKG`(classic PAT, `read:packages`) 설정 후 확인 필요. 0.1.1 tarball에 README가 포함된 것은 `npm pack --dry-run`으로 확인함
 - fabrics 도메인 컴포넌트 v1 목록 (첫 소비 프로젝트 기획 시)
 - v0.3에서 제외한 표 기능(다중 컬럼 정렬, 단일 선택 행, sticky header, 모바일 카드 전환, 독립 `Pagination` export). 실제 요구가 생길 때 추가한다

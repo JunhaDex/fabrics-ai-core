@@ -11,3 +11,4 @@
 | 문서 | 내용 | 상태 |
 |---|---|---|
 | `app-pocket-bridge.md` | pocket 브릿지 계약의 잠정 정의 (이벤트명, 페이로드, capability 이름 체계, 오류 형식, UA 토큰 형식) | 잠정안 (v0.1). 안정화 후 `app-bridge`로 이관 |
+| `app-pocket-webview-layout.md` | 웹뷰 edge-to-edge와 safe area 역할 분담 (네이티브 웹뷰 설정, 지원 WebView 버전, 검증 항목) | v0.1 |
