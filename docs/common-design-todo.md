@@ -153,6 +153,17 @@
   (`isMountAnimationPrevented` 가 rAF 에서 풀린다). 열림 전환을 검증하는 테스트는 클릭
   전에 프레임을 넘겨야 하고, 그러지 않으면 `animationName` 이 `none` 으로 읽혀 간헐적으로
   실패한다. 실제 사용자는 한 프레임 안에 클릭할 수 없어 제품 동작과는 무관하다
+- z-index 는 토큰 슬롯이 아니다. 쌓임 순서는 룩앤필이 아니므로 테마가 바꾸면 안 되고,
+  Tailwind v4 에는 z-index 테마 네임스페이스도 없다. core 가 고정 계층을 쓴다: sticky 바 `z-10`,
+  오버레이(Dialog·Popover·Select·Tooltip) `z-50`(중첩은 Radix 포털의 DOM 순서로 해결),
+  Toast `z-60`. Toast viewport 는 포털이 아니라 앱 루트에 먼저 렌더되므로 같은 z 면 나중에
+  붙는 Dialog 가 덮는다. Toast 변경은 Dialog step 에서 적용한다
+- 투명도가 있는 색 슬롯은 `rgba(r, g, b, a)` 쉼표 형식으로 쓴다. Style Dictionary 의
+  색 변환이 `rgb(r g b / a)` 공백 형식의 alpha 를 버리고 hex 로 출력한다
+- core 컴포넌트의 `tv` 는 `utils/tv.ts`(`createTV` + spacing 슬롯 이름)에서 가져온다. 내장 merge 는
+  `top-bar`·`w-nav` 같은 이름 있는 spacing 값을 인식하지 못해 소비자의 `top-0`·`w-full` 과 충돌을
+  해소하지 않는다. `sem.spacing.*` 슬롯을 추가하면 이 목록에도 넣는다. v0.3 이전 컴포넌트는
+  spacing 슬롯을 padding 에만 쓰고 padding 은 `layoutClass()` 가 걸러 내므로 영향이 없어 옮기지 않았다
 
 ## 진행 중: v0.4 레이아웃
 - 컨텍스트(2026-10-06 범위 확정): 첫 소비 프로젝트 stylist-web 이 `@repo/ui` 에 로컬
@@ -177,28 +188,49 @@
     `confirmLabel`/`cancelLabel`/`onConfirm`, `tone`). `md` 미만에서는 하단 시트 형태로
     CSS 반응형 전환한다(스와이프 닫기는 범위 밖)
 - 핵심 기능 (모두 완료되면 릴리스). DoD 3요건을 갖춘 뒤 체크한다:
-  - [ ] TopBar
-  - [ ] SideNav
-  - [ ] BottomTabBar
-  - [ ] Dialog
+  - [x] TopBar
+  - [x] SideNav
+  - [x] BottomTabBar
+  - [x] Dialog
   - [ ] AlertDialog
   - [ ] Footer
   - [ ] Columns
   - [ ] BentoGrid
 - 세부 step (한 사이클 = 한 커밋. 종료 게이트는 CI 순서 그대로
   `pnpm lint && pnpm build && pnpm format:check && pnpm typecheck && pnpm test`):
-  - [ ] 의미 슬롯 추가 — 컴포넌트보다 먼저. stylist-web 로컬 구현의 하드코딩 값이 후보다:
-        z-index 계층(sticky 바·오버레이·토스트), 바 높이(`h-14`), 사이드 내비 폭(`w-56`),
-        오버레이 scrim 색(모드 의존), 오버레이 그림자. Dialog 열림/닫힘 keyframes
-  - [ ] TopBar
-  - [ ] SideNav + BottomTabBar (항목 타입·`linkComponent` 공유)
-  - [ ] Dialog
+  - [x] 의미 슬롯 3개 추가 — 슬롯 53 → 56개. `sem.color.scrim`(light `rgba(9, 9, 11, 0.5)`,
+        dark `rgba(0, 0, 0, 0.7)`), `sem.spacing.bar`(3.5rem, `h-bar`), `sem.spacing.nav`(14rem,
+        `w-nav`). 원시 spacing 에 `14`·`56` 추가. `motion.css` 에 `fade-in`/`fade-out`(scrim),
+        `sheet-in`/`sheet-out`(하단 시트) keyframes, 지속 시간은 `--sem-duration-base`.
+        `tokens.stories.tsx` 의 Colors(모드별 scrim 값)·Motion·Density play 로 고정했다.
+        z-index 는 슬롯으로 만들지 않았다(결정 사항 참고)
+  - [x] TopBar — `brand`(필수)·`actions`(선택) 슬롯, `<header>`(banner). sticky `top-0 z-10` 기본,
+        끄려면 `className="relative"`. 위쪽 safe-area 는 header 패딩, 높이 `h-bar` 는 안쪽 행에
+        둔다. 좌우 여백은 `max(1rem, env(safe-area-inset-*))` 고정값(페이지 여백 슬롯 없음).
+        스토리 4종(기본/brand 만/sticky 스크롤/레이아웃 오버라이드). safe-area 는 테스트
+        브라우저에서 0 이라 실기기(stylist-web)에서 확인한다
+  - [x] SideNav + BottomTabBar — `NavItem`/`NavLinkProps` 타입 공유(`utils/nav.ts`),
+        `aria-label` 필수, `linkComponent`(기본 `'a'`). SideNav 는 `sticky top-bar` +
+        `h-[calc(100dvh-var(--sem-spacing-bar))]` 내장(TopBar 없으면 `top-0 h-dvh`), 활성은 면 색 +
+        `font-semibold`. BottomTabBar 활성은 아이콘 뒤 `bg-brand` 표시자 + `font-semibold`(색만으로
+        구분하지 않는다). 아이콘 크기는 `[&_svg]:size-5/6` 로 컴포넌트가 정한다. 라벨 4.5:1·표시자
+        3:1 을 light/dark 에서 단언. 스토리 7종(각 기본/커스텀 링크/오버라이드 + AppShell 조합).
+        대비 계산은 `stories/contrast.ts` 로 분리해 tokens 스토리와 공유한다
+  - [x] Dialog — `title`(필수)·`description`·`children`·`footer`·`trigger`(선택)·제어/비제어·
+        `closeLabel`(기본 '닫기', 헤더 X 버튼 상시). 크기 prop 없이 `md:max-w-lg` 기본, `className` 으로
+        폭 덮어쓰기. md 미만 하단 시트(`sheet-in/out`), 이상은 `inset-0 m-auto` 가운데(`enter/exit`,
+        translate 는 keyframes 의 transform 과 충돌). footer 버튼으로 닫기는 제어형으로 한다.
+        Toast viewport 를 `z-60 pointer-events-auto` 로 바꿨다(모달이 body 에 거는 pointer-events:
+        none 때문에 닫기 버튼을 누를 수 없었다). 스토리 7종(기본/바깥·X 닫기/제어형/설명 없음/
+        긴 본문/Select 중첩/Toast 겹침). md 가운데 레이아웃은 테스트 viewport(md 미만) 밖이라
+        눈으로 확인한다. 모달 중 F6 으로 토스트에 포커스를 옮기는 것은 포커스 가두기와 충돌해
+        지원하지 않는다
   - [ ] AlertDialog
   - [ ] Footer
   - [ ] Columns
   - [ ] BentoGrid — 항목 배치(col/row span)를 props 로 받을지 `className` 으로 받을지 이 step 에서 정한다
   - [ ] 릴리스: changeset 작성 → PR squash merge → 릴리스 PR 병합
-- 다음 행동: `feat/v0.4-layout` 브랜치를 만들고 의미 슬롯 step 부터 진행한다
+- 다음 행동: AlertDialog step 의 영향도 분석·계획을 보고한다
 
 ## 다음 버전 (계획)
 - v0.5 테마: brutalism, tactile-surface (v0.2~0.4 컴포넌트로 슬롯·스타일 레이어 검증)
@@ -211,6 +243,7 @@
 - v0.1.0 (2026-09-22) 최초 골격: 토큰→테마→코어→Storybook 파이프라인 연결. `packages/tokens`(DTCG primitives/semantic, `@theme` CSS 변수), `packages/core`(Button variant 4·size 3·`asChild`, `layoutClass`, tsdown), `themes/neutral`(light/dark 단일 번들), `apps/storybook`(`data-mode` 툴바). changesets → CHANGELOG → 태그 → GitHub Packages publish 파이프라인 검증 완료
 
 ## 미확정 사항
+- (stylist-web 제안, 2026-10-12) theme-neutral 이 모드별 `color-scheme` 을 지정하지 않아 dark 모드에서도 스크롤바·기본 폼 컨트롤이 light 로 그려진다. `[data-mode="dark"] { color-scheme: dark }`(light 는 `light`)를 테마 CSS 에 넣을지. stylist-web 은 `@repo/ui` 진입 CSS 에 임시로 정의해 두었다
 - `@storybook/addon-vitest` 10.6.0 의 peer 는 vitest ^3 || ^4 인데 설치본은 5.0.1 이라 `pnpm install` 에서 peer 경고가 난다. 테스트는 통과한다. Storybook 갱신 시 함께 확인한다
 - 로컬 설치 검증(`npm view @junhadex/core`): `.zshrc`에 `GITHUB_TOKEN_PKG`(classic PAT, `read:packages`) 설정 후 확인 필요. 0.1.1 tarball에 README가 포함된 것은 `npm pack --dry-run`으로 확인함
 - fabrics 도메인 컴포넌트 v1 목록 (첫 소비 프로젝트 기획 시)
