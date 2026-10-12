@@ -192,9 +192,9 @@
   - [x] SideNav
   - [x] BottomTabBar
   - [x] Dialog
-  - [ ] AlertDialog
-  - [ ] Footer
-  - [ ] Columns
+  - [x] AlertDialog
+  - [x] Footer
+  - [x] Columns
   - [ ] BentoGrid
 - 세부 step (한 사이클 = 한 커밋. 종료 게이트는 CI 순서 그대로
   `pnpm lint && pnpm build && pnpm format:check && pnpm typecheck && pnpm test`):
@@ -225,12 +225,20 @@
         긴 본문/Select 중첩/Toast 겹침). md 가운데 레이아웃은 테스트 viewport(md 미만) 밖이라
         눈으로 확인한다. 모달 중 F6 으로 토스트에 포커스를 옮기는 것은 포커스 가두기와 충돌해
         지원하지 않는다
-  - [ ] AlertDialog
-  - [ ] Footer
-  - [ ] Columns
+  - [x] AlertDialog — Radix AlertDialog. `title`·`description`·`onConfirm` 필수, `confirmLabel`/
+        `cancelLabel`(기본 '확인'/'취소'), `tone`(neutral/danger → 확인 버튼 variant). Dialog 의 `dialog`
+        슬롯을 재사용하고 X 버튼은 두지 않는다. 바깥 클릭으로 닫히지 않고 Esc 는 취소, 첫 포커스는
+        취소 버튼. 비동기 확인의 로딩 상태는 범위 밖(제어형으로 처리). 스토리 4종(기본/확인/danger/제어형)
+  - [x] Footer — 소비 요구가 아직 없어 최소 형태. `<footer>`(contentinfo), `children`(왼쪽 자유 내용),
+        `links`(`{ href, label }[]`, `<nav aria-label>` + `<ul>`), `linksLabel`(기본 '하단 링크'),
+        `linkComponent`. 모바일 세로·md 가로 양끝 정렬, 좌우·하단 safe-area 반영. 링크 대비 4.5:1 을
+        light/dark 에서 단언. 스토리 4종(기본/링크 없음/커스텀 링크/오버라이드)
+  - [x] Columns — `cols`(2·3·4, 기본 2), 자식 하나가 열 하나, 간격 `gap-stack`. 뷰포트가 아니라
+        컨테이너 쿼리(`@container` 바깥 + grid 안쪽, `@3xl` = 48rem)로 펼쳐 SideNav 옆·Dialog 안에서도
+        맞게 동작한다. 스토리 4종(800px 3열/400px 1열/4열/오버라이드), 열 수는 자식 x 좌표로 단언
   - [ ] BentoGrid — 항목 배치(col/row span)를 props 로 받을지 `className` 으로 받을지 이 step 에서 정한다
   - [ ] 릴리스: changeset 작성 → PR squash merge → 릴리스 PR 병합
-- 다음 행동: AlertDialog step 의 영향도 분석·계획을 보고한다
+- 다음 행동: BentoGrid step 의 영향도 분석·계획을 보고한다
 
 ## 다음 버전 (계획)
 - v0.5 테마: brutalism, tactile-surface (v0.2~0.4 컴포넌트로 슬롯·스타일 레이어 검증)
