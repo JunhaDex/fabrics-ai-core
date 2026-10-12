@@ -1,0 +1,20 @@
+{
+  "servers": {
+    "stylist-web": {
+      "dir": "projects/stylist-web",
+      "command": ["pnpm", "exec", "turbo", "run", "dev", "--ui=stream"],
+      "ports": [3000, 3001, 3002],
+      "env": {}
+    }
+  },
+  "tasks": {
+    "android-emulator": {
+      "dir": "tools/dev-env",
+      "command": ["scripts/android-emulator.sh"],
+      "env": {
+        "ANDROID_AVD": "Medium_Phone_API_35",
+        "EMULATOR_PORT": "5554"
+      }
+    }
+  }
+}

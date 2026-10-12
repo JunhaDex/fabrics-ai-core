@@ -167,6 +167,24 @@ fabrics 업무 산출물이 아니라, 메타 저장소 자체의 운영을 보�
 참고. 토큰/API 키 등 민감 정보는 `.env`(아래 `.gitignore` 핵심의 패턴으로
 보호됨) 또는 `secrets/`에 두고, 실제 값 대신 `.env.example`만 커밋한다.
 
+#### 로컬 dev 서버 (`tools/dev-env`)
+웹앱의 로컬 dev 서버와 에뮬레이터는 `tools/dev-env`가 launchd LaunchAgent로
+관리한다. 운영 방법은 `tools/dev-env/README.md`가 원본이다.
+- **세션은 dev 서버를 직접 띄우지 않는다.** `pnpm dev`, `next dev`, `nohup ... &`
+  대신 `tools/dev-env/devctl`로 상태를 확인하고(`ls`, `ports`, `logs`) 재시작한다.
+  Slack 워커가 실행하는 `claude -p`는 최대 600초 뒤 종료되므로, 세션 안에서
+  띄운 서버는 세션과 함께 정리되거나 출력 파이프를 붙잡아 응답을 타임아웃시킨다
+- 서버와 작업은 `tools/dev-env/registry.json`에 등록한다. `KeepAlive`는 dev
+  서버(`servers`)에만 켜고, 에뮬레이터 같은 작업(`tasks`)은 필요할 때 띄운다
+- **포트는 웹서비스마다 10개 단위 블록으로 할당한다**(3000–3009, 3010–3019 …).
+  현재 할당의 정본은 레지스트리다. 블록이 겹치지 않으므로 모든 dev 서버를
+  동시에 띄워 둘 수 있다
+- pocket이 탑재할 서비스는 pocket의 Debug 시작 URL로 고른다. 다른 서비스를
+  검증하려고 3000 포트를 비우지 않는다. 포트를 옮겨야 하면 레지스트리를 고치고,
+  해당 프로젝트가 포트를 env로 받도록 한다
+- 정전과 무인 재부팅은 대응하지 않는다. 재부팅 후에는 README의 "수동 복구"
+  절차를 따른다
+
 ### 왜 git submodule을 쓰지 않는가
 submodule은 커밋 해시를 고정(pin)하는 방식이라 "정확한 버전이 고정된 라이브러리
 의존성"에 적합하다. 프로젝트 간 버전 고정이 필요 없는 이 구조에서는 detached
@@ -196,6 +214,8 @@ HEAD, 동기화 실수 같은 submodule 특유의 마찰만 늘어난다. 대신
 4. 루트에서 Claude Code를 실행해 `CLAUDE.md`가 정상적으로 로드되는지 확인한다.
 5. `tools/slack-worker`를 쓰는 경우, `tools/slack-worker/README.md`를 따라
    로컬 전용 파일(`.env`, `channels.local.json`)을 채운다.
+   로컬 dev 서버를 띄울 기기라면 `tools/dev-env/devctl install`로 등록된
+   서버를 적재한다. 기기마다 값이 다르면 `registry.local.json`에 쓴다.
 6. 사용자 전역 스킬을 설치한다. `~/.claude/skills/`는 git으로 동기화되지
    않으므로 기기마다 수행한다. Python 3.x가 필요하다.
    ```
@@ -239,6 +259,7 @@ projects/app-pocket/*
 .DS_Store
 *.local.json
 tools/slack-worker/state/
+tools/dev-env/state/
 ```
 
 ## 민감정보 처리

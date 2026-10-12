@@ -189,7 +189,15 @@ Slack: `C0C52CS9QFK`
     따로 필요하므로, 설정을 단순하게 유지하기 위해 호스트명 `localhost`를 쓴다
   - `NSAllowsArbitraryLoads`는 전역으로 ATS를 꺼 스토어 심사에서 소명을
     요구받으므로 쓰지 않는다
-- 로컬 웹서버는 이 프로젝트가 아니라 별도 프로젝트로 세팅한다
+- 로컬 웹서버는 이 프로젝트가 아니라 별도 프로젝트로 세팅한다. 현재 서버는
+  stylist-web shell(`localhost:3000`)이며, `tools/dev-env`가 launchd로 상시 실행한다
+  (`docs/ssot/repo-architecture.md` "로컬 dev 서버" 절). 세션은 서버를 직접 띄우지
+  않고 `tools/dev-env/devctl`을 쓴다
+  - Android 에뮬레이터는 `devctl up android-emulator`로 화면 없이 띄운다. 부팅이
+    끝나면 실행 중인 서버 포트 전체에 `adb reverse`가 자동으로 걸린다. 서버를
+    나중에 띄웠다면 `devctl reverse`를 다시 실행한다
+  - 다른 웹서비스를 탑재해 검증할 때는 3000을 비우지 않고 Debug 시작 URL을 그
+    서비스의 포트로 바꾼다
 - 테스트 페이지는 정적 HTML 하나로 충분하다. 브릿지 호출 결과와 오류를
   **화면에 렌더링하는 로그 영역**을 반드시 둔다. 실기기에서는 콘솔 확인이
   번거롭다. 원격 설정 JSON도 같은 서버에 정적 파일로 둔다
@@ -400,11 +408,16 @@ capability 목록이다.
       `src/debug`의 manifest와 `network_security_config.xml`, iOS는
       `Config/Info.plist`의 `#if DEBUG` 블록을 Debug 구성에서만 전처리로 포함한다.
       빌드 산출물에서 debug에만 설정이 들어가는 것을 확인했다
-    - [ ] 로컬 웹서버. **blocker: 별도 프로젝트로 세팅할 예정이며 아직 생성되지
-      않았다.** 이 프로젝트에서는 테스트 페이지를 만들지 않는다
-    - [ ] (웹서버 완료 후) 로그 영역을 갖춘 테스트 페이지와 원격 설정 JSON 연결,
-      `adb reverse`를 포함한 개발 스크립트, 에뮬레이터·시뮬레이터에서 평문 HTTP
-      설정 검증
+    - [x] 로컬 웹서버. stylist-web v0.1을 `tools/dev-env`에 등록해 `localhost:3000`으로
+      상시 실행한다. `adb reverse`를 포함한 개발 스크립트도 `devctl`로 대체했다.
+      headless 에뮬레이터 기동과 reverse 자동 적용까지 확인했다
+    - [ ] 에뮬레이터·시뮬레이터 웹뷰에서 `localhost:3000` 로딩과 평문 HTTP 설정 검증
+    - [ ] 로그 영역을 갖춘 브릿지 테스트 페이지와 원격 설정 JSON. **둘 위치가 미정이다**
+      (미확정 사항 참고). S6 이전에 정한다
+    - [ ] 에뮬레이터 WebView를 M144 이상으로 맞춘다. 현재 AVD `Medium_Phone_API_35`의
+      WebView는 133이라 safe area 계약(M144 이상)을 검증할 수 없다. WebView를
+      업데이트하거나 최신 이미지로 AVD를 만들고, `tools/dev-env/registry.local.json`의
+      `ANDROID_AVD`를 바꾼다
   - [ ] S4 웹뷰 셸 (시작 URL 로딩, 오프라인·로딩 실패 화면)
     - [ ] 웹뷰를 edge-to-edge로 띄우고 safe area를 웹에 맡긴다. 네이티브 설정과 검증
       항목은 `architecture/app-pocket-webview-layout.md`를 따른다
@@ -417,11 +430,11 @@ capability 목록이다.
   - [ ] S9 강제 업데이트
   - [ ] S10 링크 오픈 브릿지 (1) 기본 브라우저로 열기
   - [ ] S11 링크 오픈 브릿지 (2). 도메인 확보 이후에 진행한다
-- 진행 순서: S3의 웹서버 blocker를 기다리지 않고 S4를 먼저 진행한다. 서버가 없는
-  상태에서 로딩 실패 화면을 검증할 수 있다. 시작 URL 로딩 성공 경로의 검증은
-  웹서버 구축 이후로 미룬다
-- 다음 행동: S4 웹뷰 셸 구현. 로컬 웹서버 프로젝트가 생성되면 S3 후속 작업을
-  진행한다
+- 진행 순서: 웹서버가 준비되었으므로 S4는 로딩 성공 경로와 safe area까지 검증할 수
+  있다. S5와 S7도 stylist-web 화면으로 검증한다. S6, S8, S10은 브릿지 테스트 페이지가,
+  S9는 원격 설정 JSON이 있어야 한다
+- 다음 행동: 에뮬레이터 WebView를 M144 이상으로 맞춘 뒤 S4 웹뷰 셸을 구현한다.
+  S6 착수 전에 브릿지 테스트 페이지와 원격 설정 JSON의 위치를 정한다
 
 ## 다음 버전 (계획)
 
@@ -448,6 +461,9 @@ _(없음)_
   오픈 브릿지 (2)가 함께 열린다. `/.well-known/` 두 파일은 Next 웹서버가
   서빙하므로 호스팅 수단은 추가로 결정할 것이 없다
 - **원격 설정 JSON의 스키마와 호스팅 위치**
+- **브릿지 테스트 페이지의 위치**. stylist-web shell의 `public/`에 정적 파일로 두는
+  안이 유력하다(같은 출처, 기존 "정적 HTML 하나" 결정과 일치). 이 경우 production
+  배포에서 제외할 방법을 함께 정한다
 - **도입할 SSO 제공자**. Apple은 앱이 서드파티 또는 소셜 로그인을 제공할 때
   Sign in with Apple을 함께 제공하도록 요구하는 조항(App Store Review
   Guideline 4.8)을 둔다. 제공자 목록이 정해지면 최신 문구를 확인한다

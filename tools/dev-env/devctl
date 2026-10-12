@@ -1,0 +1,384 @@
+#!/usr/bin/env python3
+# tools/dev-env/devctl
+# 로컬 dev 서버·작업을 launchd LaunchAgent로 관리한다. 사용법은 README.md 참고.
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import plistlib
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+REPO_ROOT = HERE.parents[1]
+REGISTRY_FILE = HERE / "registry.json"
+REGISTRY_LOCAL_FILE = HERE / "registry.local.json"
+LOG_DIR = HERE / "state" / "logs"
+AGENT_DIR = Path.home() / "Library" / "LaunchAgents"
+LABEL_PREFIX = "com.fabrics.dev."
+DOMAIN = f"gui/{os.getuid()}"
+
+ANDROID_HOME = os.environ.get("ANDROID_HOME", str(Path.home() / "Library/Android/sdk"))
+# launchd는 로그인 셸의 PATH를 상속하지 않으므로 직접 지정한다
+BASE_PATH = ":".join([
+    "/opt/homebrew/bin",
+    "/usr/local/bin",
+    "/usr/bin",
+    "/bin",
+    "/usr/sbin",
+    "/sbin",
+    f"{ANDROID_HOME}/platform-tools",
+    f"{ANDROID_HOME}/emulator",
+])
+
+# 서버는 죽으면 launchd가 다시 띄운다. 포트 충돌 등으로 즉시 죽는 경우의 재시작 간격(초)
+SERVER_THROTTLE = 30
+
+
+class DevctlError(Exception):
+    pass
+
+
+# ---------- 레지스트리 ----------
+
+def load_registry() -> dict[str, dict]:
+    """registry.json에 registry.local.json을 항목 단위로 덮어써 {name: entry}로 반환한다."""
+    base = json.loads(REGISTRY_FILE.read_text())
+    local = json.loads(REGISTRY_LOCAL_FILE.read_text()) if REGISTRY_LOCAL_FILE.exists() else {}
+    entries: dict[str, dict] = {}
+    for kind in ("servers", "tasks"):
+        merged = {**base.get(kind, {})}
+        for name, override in local.get(kind, {}).items():
+            merged[name] = {**merged.get(name, {}), **override}
+        for name, entry in merged.items():
+            if name in entries:
+                raise DevctlError(f"이름 중복: {name} (servers와 tasks에 모두 있음)")
+            entries[name] = {**entry, "name": name, "kind": kind}
+    return entries
+
+
+def get_entry(registry: dict[str, dict], name: str) -> dict:
+    if name not in registry:
+        raise DevctlError(f"등록되지 않은 이름: {name} (등록 목록: {', '.join(registry)})")
+    return registry[name]
+
+
+def check_registry_conflicts(registry: dict[str, dict]) -> list[str]:
+    owners: dict[int, list[str]] = {}
+    for entry in registry.values():
+        for port in entry.get("ports", []):
+            owners.setdefault(port, []).append(entry["name"])
+    return [f"포트 {p}: {', '.join(names)}" for p, names in sorted(owners.items()) if len(names) > 1]
+
+
+# ---------- launchd ----------
+
+def label(entry: dict) -> str:
+    return LABEL_PREFIX + entry["name"]
+
+
+def plist_path(entry: dict) -> Path:
+    return AGENT_DIR / f"{label(entry)}.plist"
+
+
+def log_path(entry: dict) -> Path:
+    return LOG_DIR / f"{entry['name']}.log"
+
+
+def launchctl(*args: str, check: bool = False) -> subprocess.CompletedProcess:
+    proc = subprocess.run(["launchctl", *args], capture_output=True, text=True)
+    if check and proc.returncode != 0:
+        raise DevctlError(f"launchctl {' '.join(args)} 실패: {(proc.stderr or proc.stdout).strip()}")
+    return proc
+
+
+def job_pid(entry: dict) -> int | None:
+    """적재되지 않았으면 None, 적재됐지만 실행 중이 아니면 0을 반환한다."""
+    proc = launchctl("print", f"{DOMAIN}/{label(entry)}")
+    if proc.returncode != 0:
+        return None
+    for line in proc.stdout.splitlines():
+        line = line.strip()
+        if line.startswith("pid = "):
+            return int(line.split("=", 1)[1])
+    return 0
+
+
+def resolve_command(entry: dict) -> list[str]:
+    cmd = list(entry["command"])
+    workdir = REPO_ROOT / entry["dir"]
+    head = cmd[0]
+    if "/" in head:
+        resolved = Path(head) if Path(head).is_absolute() else workdir / head
+        if not resolved.exists():
+            raise DevctlError(f"{entry['name']}: 실행 파일 없음 {resolved}")
+        cmd[0] = str(resolved)
+    else:
+        found = shutil.which(head, path=BASE_PATH)
+        if not found:
+            raise DevctlError(f"{entry['name']}: PATH에서 {head}를 찾을 수 없음")
+        cmd[0] = found
+    return cmd
+
+
+def build_plist(entry: dict) -> dict:
+    is_server = entry["kind"] == "servers"
+    env = {
+        "PATH": BASE_PATH,
+        "ANDROID_HOME": ANDROID_HOME,
+        "DEVCTL": str(HERE / "devctl"),
+        **{k: str(v) for k, v in entry.get("env", {}).items()},
+    }
+    plist = {
+        "Label": label(entry),
+        "ProgramArguments": resolve_command(entry),
+        "WorkingDirectory": str(REPO_ROOT / entry["dir"]),
+        "EnvironmentVariables": env,
+        "RunAtLoad": is_server,
+        "KeepAlive": is_server,
+        "StandardOutPath": str(log_path(entry)),
+        "StandardErrorPath": str(log_path(entry)),
+    }
+    if is_server:
+        plist["ThrottleInterval"] = SERVER_THROTTLE
+    return plist
+
+
+# ---------- 포트 ----------
+
+def port_listeners(port: int) -> list[tuple[int, str]]:
+    proc = subprocess.run(
+        ["lsof", "-nP", f"-iTCP:{port}", "-sTCP:LISTEN", "-Fpc"],
+        capture_output=True, text=True,
+    )
+    result, pid = [], None
+    for line in proc.stdout.splitlines():
+        if line.startswith("p"):
+            pid = int(line[1:])
+        elif line.startswith("c") and pid is not None:
+            result.append((pid, line[1:]))
+    return list(dict.fromkeys(result))
+
+
+def is_descendant(pid: int, ancestor: int) -> bool:
+    while pid > 1:
+        if pid == ancestor:
+            return True
+        out = subprocess.run(["ps", "-o", "ppid=", "-p", str(pid)], capture_output=True, text=True).stdout.strip()
+        if not out:
+            return False
+        pid = int(out)
+    return False
+
+
+def foreign_listeners(entry: dict) -> list[str]:
+    """이 항목의 등록 포트를 이 항목이 아닌 프로세스가 점유하고 있으면 목록을 반환한다."""
+    own = job_pid(entry) or 0
+    problems = []
+    for port in entry.get("ports", []):
+        for pid, cmd in port_listeners(port):
+            if not (own and is_descendant(pid, own)):
+                problems.append(f"포트 {port}: pid {pid} ({cmd})")
+    return problems
+
+
+def ensure_ports_free(entry: dict) -> None:
+    problems = foreign_listeners(entry)
+    if problems:
+        raise DevctlError(
+            f"{entry['name']}: 등록 포트가 다른 프로세스에 점유되어 시작하지 않음\n  "
+            + "\n  ".join(problems)
+            + "\n  `devctl ports`로 점유 주체를 확인하고 정리한 뒤 다시 시도한다"
+        )
+
+
+# ---------- 명령 ----------
+
+def install(entry: dict) -> None:
+    AGENT_DIR.mkdir(parents=True, exist_ok=True)
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    plist = build_plist(entry)
+    if job_pid(entry) is not None:
+        launchctl("bootout", f"{DOMAIN}/{label(entry)}")
+    if entry["kind"] == "servers":
+        ensure_ports_free(entry)
+    with plist_path(entry).open("wb") as f:
+        plistlib.dump(plist, f)
+    launchctl("bootstrap", DOMAIN, str(plist_path(entry)), check=True)
+    print(f"installed {label(entry)}" + (" (시작됨)" if plist["RunAtLoad"] else " (정지 상태, `devctl up`으로 시작)"))
+
+
+def uninstall(entry: dict) -> None:
+    if job_pid(entry) is not None:
+        launchctl("bootout", f"{DOMAIN}/{label(entry)}", check=True)
+    plist_path(entry).unlink(missing_ok=True)
+    print(f"uninstalled {label(entry)}")
+
+
+def up(entry: dict) -> None:
+    pid = job_pid(entry)
+    if pid:
+        print(f"{entry['name']}: 이미 실행 중 (pid {pid})")
+        return
+    ensure_ports_free(entry)
+    if pid is None:
+        if not plist_path(entry).exists():
+            install(entry)
+            if entry["kind"] == "servers":
+                return
+        else:
+            launchctl("bootstrap", DOMAIN, str(plist_path(entry)), check=True)
+            if entry["kind"] == "servers":
+                print(f"{entry['name']}: 시작됨")
+                return
+    launchctl("kickstart", f"{DOMAIN}/{label(entry)}", check=True)
+    print(f"{entry['name']}: 시작됨")
+
+
+def down(entry: dict) -> None:
+    if job_pid(entry) is None:
+        print(f"{entry['name']}: 적재되어 있지 않음")
+        return
+    launchctl("bootout", f"{DOMAIN}/{label(entry)}", check=True)
+    note = " (plist는 유지되므로 다음 로그인 때 다시 시작된다. 영구 정지는 uninstall)" if entry["kind"] == "servers" else ""
+    print(f"{entry['name']}: 정지됨{note}")
+
+
+def restart(entry: dict) -> None:
+    if not job_pid(entry):
+        up(entry)
+        return
+    launchctl("kickstart", "-k", f"{DOMAIN}/{label(entry)}", check=True)
+    print(f"{entry['name']}: 재시작됨")
+
+
+def cmd_ls(registry: dict[str, dict]) -> None:
+    rows = [("NAME", "KIND", "PLIST", "STATE", "PID", "PORTS")]
+    for entry in registry.values():
+        pid = job_pid(entry)
+        state = "unloaded" if pid is None else ("running" if pid else "stopped")
+        ports = []
+        for port in entry.get("ports", []):
+            ports.append(f"{port}{'✓' if port_listeners(port) else '✗'}")
+        rows.append((
+            entry["name"],
+            entry["kind"][:-1],
+            "yes" if plist_path(entry).exists() else "no",
+            state,
+            str(pid) if pid else "-",
+            " ".join(ports) or "-",
+        ))
+    widths = [max(len(r[i]) for r in rows) for i in range(len(rows[0]))]
+    for r in rows:
+        print("  ".join(c.ljust(w) for c, w in zip(r, widths)).rstrip())
+    print("\nPORTS: ✓ LISTEN 중, ✗ 응답 없음. 점유 주체는 `devctl ports`로 확인한다")
+
+
+def cmd_ports(registry: dict[str, dict]) -> int:
+    status = 0
+    conflicts = check_registry_conflicts(registry)
+    if conflicts:
+        status = 1
+        print("레지스트리 내부 포트 중복:")
+        for c in conflicts:
+            print(f"  {c}")
+        print()
+    rows = [("PORT", "NAME", "LISTENER")]
+    for entry in registry.values():
+        own = job_pid(entry) or 0
+        for port in entry.get("ports", []):
+            listeners = port_listeners(port)
+            if not listeners:
+                rows.append((str(port), entry["name"], "-"))
+            for pid, cmd in listeners:
+                ours = own and is_descendant(pid, own)
+                if not ours:
+                    status = 1
+                rows.append((str(port), entry["name"], f"pid {pid} {cmd}" + ("" if ours else "  ← 외부 프로세스")))
+    widths = [max(len(r[i]) for r in rows) for i in range(3)]
+    for r in rows:
+        print("  ".join(c.ljust(w) for c, w in zip(r, widths)).rstrip())
+    return status
+
+
+def cmd_logs(entry: dict, follow: bool, lines: int) -> None:
+    path = log_path(entry)
+    if not path.exists():
+        raise DevctlError(f"로그 없음: {path}")
+    args = ["tail", "-n", str(lines)] + (["-f"] if follow else []) + [str(path)]
+    os.execvp("tail", args)
+
+
+def cmd_reverse(registry: dict[str, dict]) -> int:
+    adb = shutil.which("adb", path=BASE_PATH)
+    if not adb:
+        raise DevctlError("adb를 찾을 수 없음")
+    out = subprocess.run([adb, "devices"], capture_output=True, text=True).stdout
+    serials = [l.split()[0] for l in out.splitlines()[1:] if l.strip().endswith("device")]
+    if not serials:
+        print("연결된 Android 기기·에뮬레이터 없음")
+        return 1
+    ports = [p for e in registry.values() if e["kind"] == "servers" and job_pid(e) for p in e.get("ports", [])]
+    if not ports:
+        print("실행 중인 서버 없음")
+        return 1
+    for serial in serials:
+        for port in ports:
+            subprocess.run([adb, "-s", serial, "reverse", f"tcp:{port}", f"tcp:{port}"], check=True,
+                           capture_output=True)
+        print(f"{serial}: reverse tcp {', '.join(map(str, ports))}")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(prog="devctl", description="fabrics 로컬 dev 서버·작업 관리")
+    sub = parser.add_subparsers(dest="cmd", required=True)
+    sub.add_parser("ls", help="등록 항목의 상태")
+    sub.add_parser("ports", help="등록 포트의 점유 주체와 중복 검사")
+    sub.add_parser("reverse", help="실행 중인 서버 포트에 adb reverse 적용")
+    for name, help_text in [
+        ("install", "plist 생성 후 적재 (이름 생략 시 전체)"),
+        ("uninstall", "적재 해제 후 plist 삭제 (이름 생략 시 전체)"),
+    ]:
+        p = sub.add_parser(name, help=help_text)
+        p.add_argument("names", nargs="*")
+    for name, help_text in [("up", "시작"), ("down", "정지 (적재 해제)"), ("restart", "재시작")]:
+        p = sub.add_parser(name, help=help_text)
+        p.add_argument("name")
+    p = sub.add_parser("logs", help="로그 출력")
+    p.add_argument("name")
+    p.add_argument("-f", "--follow", action="store_true")
+    p.add_argument("-n", "--lines", type=int, default=100)
+    args = parser.parse_args()
+
+    try:
+        registry = load_registry()
+        if args.cmd == "ls":
+            cmd_ls(registry)
+        elif args.cmd == "ports":
+            return cmd_ports(registry)
+        elif args.cmd == "reverse":
+            return cmd_reverse(registry)
+        elif args.cmd in ("install", "uninstall"):
+            if args.cmd == "install":
+                conflicts = check_registry_conflicts(registry)
+                if conflicts:
+                    raise DevctlError("레지스트리 내부 포트 중복:\n  " + "\n  ".join(conflicts))
+            targets = [get_entry(registry, n) for n in args.names] or list(registry.values())
+            for entry in targets:
+                (install if args.cmd == "install" else uninstall)(entry)
+        elif args.cmd == "logs":
+            cmd_logs(get_entry(registry, args.name), args.follow, args.lines)
+        else:
+            {"up": up, "down": down, "restart": restart}[args.cmd](get_entry(registry, args.name))
+    except DevctlError as e:
+        print(f"devctl: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
