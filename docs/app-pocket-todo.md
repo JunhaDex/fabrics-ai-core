@@ -411,19 +411,49 @@ capability 목록이다.
     - [x] 로컬 웹서버. stylist-web v0.1을 `tools/dev-env`에 등록해 `localhost:3000`으로
       상시 실행한다. `adb reverse`를 포함한 개발 스크립트도 `devctl`로 대체했다.
       headless 에뮬레이터 기동과 reverse 자동 적용까지 확인했다
-    - [ ] 에뮬레이터·시뮬레이터 웹뷰에서 `localhost:3000` 로딩과 평문 HTTP 설정 검증
+    - [x] 에뮬레이터·시뮬레이터 웹뷰에서 `localhost:3000` 로딩과 평문 HTTP 설정 검증.
+      골격 앱에는 웹뷰가 없으므로 S4 셸로 검증했다
     - [ ] 로그 영역을 갖춘 브릿지 테스트 페이지와 원격 설정 JSON. **둘 위치가 미정이다**
       (미확정 사항 참고). S6 이전에 정한다
-    - [ ] 에뮬레이터 WebView를 M144 이상으로 맞춘다. 현재 AVD `Medium_Phone_API_35`의
-      WebView는 133이라 safe area 계약(M144 이상)을 검증할 수 없다. WebView를
-      업데이트하거나 최신 이미지로 AVD를 만들고, `tools/dev-env/registry.local.json`의
-      `ANDROID_AVD`를 바꾼다
-  - [ ] S4 웹뷰 셸 (시작 URL 로딩, 오프라인·로딩 실패 화면)
-    - [ ] 웹뷰를 edge-to-edge로 띄우고 safe area를 웹에 맡긴다. 네이티브 설정과 검증
+    - [x] 에뮬레이터 WebView를 M144 이상으로 맞춘다. AVD `Medium_Phone_API_35`에
+      Android System WebView Dev(`com.google.android.webview.dev`, 157)를 설치해
+      provider로 쓴다. AVD가 레지스트리 기본값과 같아 `registry.local.json`은 필요 없다
+      - 실제 provider는 `adb shell dumpsys webviewupdate | grep "Current WebView"`로
+        확인한다. `dumpsys package com.google.android.webview`는 안정 채널 패키지(133)를
+        보여 줄 뿐이다
+      - Dev 패키지를 삭제하거나 사용 중지하면 경고 없이 안정 채널로 돌아가므로 safe area
+        검증 전에 provider를 확인한다
+  - [x] S4 웹뷰 셸 (시작 URL 로딩, 오프라인·로딩 실패 화면) (aos `b673f50`,
+        ios `aa77ba9`, 각 PR #2). 로컬 웹앱 연결 절차는 각 저장소 README에 둔다(각 PR #3)
+    - [x] 웹뷰를 edge-to-edge로 띄우고 safe area를 웹에 맡긴다. 네이티브 설정과 검증
       항목은 `architecture/app-pocket-webview-layout.md`를 따른다
+    - [x] 오프라인과 로딩 실패는 **하나의 네이티브 오류 화면**으로 처리한다. 원인을
+      구분해 얻는 이점이 없고, Android에서 구분하려면 연결 상태 조회가 추가로 필요하다.
+      문구는 en(기본)·ko·ja 리소스로 둔다
+    - [x] 오류 화면은 메인 프레임의 네트워크 수준 실패에만 띄운다. HTTP 오류 상태
+      (404, 500)는 웹앱이 자체 페이지로 처리한다. 재시도는 실패한 URL을 다시 로드하고,
+      성공할 때까지 오류 화면을 유지해 WebView 기본 오류 페이지를 노출하지 않는다
+    - [x] Android는 회전 시 Activity 재생성으로 웹 상태가 초기화되지 않도록
+      `configChanges`로 직접 처리한다. 가로 모드 지원(레이아웃 계약)의 전제다
+    - 검증 완료: 로딩 성공(양 플랫폼), safe area 세로(양 플랫폼)·가로(Android),
+      실패 화면(양 플랫폼, iOS는 ja 로캘), 재시도 복구(Android), iOS 가로 모드,
+      iPad Pro 13인치
+    - [ ] 남은 검증: iOS 재시도 복구
   - [ ] S5 시작 화면 2층 구조
   - [ ] S6 브릿지 기반 레이어
   - [ ] S7 셸 기본 동작
+    - [ ] WebView 배경색을 웹앱 테마와 맞춘다. 웹앱의 페이지 이동이 문서 전체를 교체하는
+      방식(hard navigation)이면, 이전 문서가 사라지고 새 문서가 그려지기 전 구간에
+      WebView 기본 배경인 흰색이 비친다. stylist-web에서 하단 탭을 이동할 때 화면이 새로
+      그려지는 것으로 관찰되었고, dark 모드에서 특히 두드러진다. Android는
+      `setBackgroundColor`, iOS는 `isOpaque = false`와 `backgroundColor`로 설정한다.
+      색을 정하는 방식은 미정이다(미확정 사항 참고)
+    - [ ] 같은 출처 안의 이동은 웹뷰가 그대로 처리하게 둔다. 외부 링크를 시스템
+      브라우저로 넘기는 처리를 구현할 때 내부 이동까지 가로채 `loadUrl`·`load`로 다시
+      띄우면, 웹이 쓰는 cross-document View Transitions가 "사용자가 페이지 안에서 시작한
+      이동"이라는 조건을 충족하지 못해 전환 애니메이션이 사라질 수 있다. Android
+      `shouldOverrideUrlLoading`은 `false`를 반환하고, iOS `decidePolicyFor`는 `.allow`로
+      통과시킨다. 이 기능은 Android WebView 127 이상, iOS 18.2 이상에서 동작한다
   - [ ] S8 기기 기능 브릿지. 카메라와 앨범을 먼저 구현한다. 권한 요청, 사용자
         취소, 바이너리 반환 세 경로가 계약의 형태를 확정하므로 나머지 기능보다
         선행해야 한다
@@ -433,8 +463,8 @@ capability 목록이다.
 - 진행 순서: 웹서버가 준비되었으므로 S4는 로딩 성공 경로와 safe area까지 검증할 수
   있다. S5와 S7도 stylist-web 화면으로 검증한다. S6, S8, S10은 브릿지 테스트 페이지가,
   S9는 원격 설정 JSON이 있어야 한다
-- 다음 행동: 에뮬레이터 WebView를 M144 이상으로 맞춘 뒤 S4 웹뷰 셸을 구현한다.
-  S6 착수 전에 브릿지 테스트 페이지와 원격 설정 JSON의 위치를 정한다
+- 다음 행동: 양 저장소 README PR #3을 squash merge한다. 이어서 S5·S7을
+  진행하고, S6 착수 전에 브릿지 테스트 페이지와 원격 설정 JSON의 위치를 정한다
 
 ## 다음 버전 (계획)
 
@@ -464,6 +494,12 @@ _(없음)_
 - **브릿지 테스트 페이지의 위치**. stylist-web shell의 `public/`에 정적 파일로 두는
   안이 유력하다(같은 출처, 기존 "정적 HTML 하나" 결정과 일치). 이 경우 production
   배포에서 제외할 방법을 함께 정한다
+- **WebView 배경색을 정하는 방식** (S7). 후보는 세 가지다
+  - 시스템 다크 모드를 따른다. 구현이 가장 단순하지만, 웹앱이 시스템 설정과 다른 모드를
+    저장해 쓰는 경우(예: 쿠키로 모드를 고정) 색이 어긋난다
+  - 웹이 브릿지로 현재 테마색을 알린다. 정확하지만 브릿지 계약에 이벤트가 하나 늘고
+    S6 이후에 가능하다
+  - 앱별 config에 고정색을 둔다. 2단계 config 주입과 맞물린다
 - **도입할 SSO 제공자**. Apple은 앱이 서드파티 또는 소셜 로그인을 제공할 때
   Sign in with Apple을 함께 제공하도록 요구하는 조항(App Store Review
   Guideline 4.8)을 둔다. 제공자 목록이 정해지면 최신 문구를 확인한다

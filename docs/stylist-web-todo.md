@@ -131,8 +131,39 @@ Slack: `C0C6MR046MV`
 
 ## 다음 버전 (계획)
 
+- **탭 전환 개선 (v0.1 릴리스 후 착수)**
+  - 배경: pocket 웹뷰에 탑재하면 하단 탭을 이동할 때 화면이 지워졌다가 다시 그려지는
+    것이 보인다. 탭 세 개(`/`, `/closet`, `/styling`)가 각각 다른 zone에 있어서 탭 링크가
+    `<a>`이고(`packages/ui/src/nav.ts`), 그래서 탭 이동이 매번 hard navigation(문서 전체
+    교체)이 된다. Next.js Multi-Zones 문서에 명시된 동작이므로 버그가 아니다
+  - 세부 step (위에서부터 순서대로 진행하고, 앞 단계에서 충분하면 멈춘다):
+    - [ ] 운영 빌드로 다시 측정한다. `turbo build` 후 `next start`로 띄워 pocket에서
+      비교한다. dev 서버는 요청 시 컴파일과 zone 간 rewrite 지연이 더해져 체감이
+      과장된다. 모든 라우트가 모드 쿠키 때문에 요청 시 렌더링(ƒ)이라는 점도 응답
+      시간(TTFB)에 영향을 준다
+    - [ ] cross-document View Transitions를 켠다. `@repo/ui` 진입 CSS에
+      `@view-transition { navigation: auto; }`를 둔다. 브라우저가 새 문서의 첫 렌더링까지
+      이전 화면의 스냅숏을 유지했다가 전환하므로 빈 구간이 사라진다. 모든 zone이 같은
+      origin이고 같은 AppShell을 SSR하므로 적용 조건을 충족한다
+    - [ ] TopBar, BottomTabBar, SideNav에 `view-transition-name`을 주어 바는 고정하고
+      본문만 전환한다
+    - [ ] 그래도 부족하면 zone 경계를 재검토한다. 탭 루트 세 개를 shell로 모으고 하위
+      경로만 각 zone에 남기면 탭 이동이 `<Link>` soft navigation이 되어, Next
+      `experimental.viewTransition`과 React `<ViewTransition>`을 쓸 수 있다. "저장소
+      구조"의 zone 분할 결정을 다시 여는 일이고 해당 기능이 experimental이므로 마지막
+      수단이다
+  - 지원 범위: Android WebView 127 이상(지원 조건이 M144 이상이므로 전부 해당),
+    iOS Safari·WKWebView 18.2 이상. 미지원 환경에서는 애니메이션 없이 지금처럼 동작한다
+  - 제외한 방법: Speculation Rules prerender는 Android WebView가 지원하지 않고 WKWebView도
+    사실상 지원하지 않는다. Android 네이티브 프리페치 API는 HTTPS 전용이라 localhost
+    검증 환경에서 쓸 수 없다
+  - 문서 교체 순간에 비치는 WebView 기본 배경(흰색)은 웹이 아니라 pocket 컨테이너가
+    배경색을 맞춰 해결한다. 이 작업은 웹에 의존하지 않는다
+
 ## 완료
 
 ## 미확정 사항
 - 실제 앱 이름
-- zone 간 hard navigation을 부드럽게 할 cross-document View Transitions 도입 여부
+- 탭 전환 연출 방식. 단순 cross-fade인지, iOS처럼 좌우로 미끄러지는 방향성 있는 전환인지에
+  따라 View Transitions CSS가 달라진다
+- iOS 18.0~18.1에서 탭 전환 애니메이션이 빠지는 것을 수용할지 여부 (최소 지원 iOS는 18.0)
