@@ -5,6 +5,7 @@ import os
 import re
 import subprocess
 import sys
+import threading
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -26,6 +27,10 @@ TODO_RE = re.compile(r"\btodo=(\S+)")
 app = App(token=os.environ["SLACK_BOT_TOKEN"])
 BOT_USER_ID = app.client.auth_test()["user_id"]
 
+# Bolt는 리스너를 스레드 풀에서 병렬 실행한다. 쓰기는 반드시 이 lock 안에서
+# 파일을 다시 읽은 뒤 수행해야 다른 스레드의 항목을 덮어쓰지 않는다.
+STATE_LOCK = threading.Lock()
+
 
 def load_state():
     if STATE_FILE.exists():
@@ -35,7 +40,26 @@ def load_state():
 
 def save_state(state):
     STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    STATE_FILE.write_text(json.dumps(state, indent=2, ensure_ascii=False))
+    tmp = STATE_FILE.with_suffix(".tmp")
+    tmp.write_text(json.dumps(state, indent=2, ensure_ascii=False))
+    tmp.replace(STATE_FILE)
+
+
+def set_thread(thread_ts: str, entry: dict) -> None:
+    with STATE_LOCK:
+        state = load_state()
+        state[thread_ts] = entry
+        save_state(state)
+
+
+def pop_thread(thread_ts: str) -> bool:
+    with STATE_LOCK:
+        state = load_state()
+        if thread_ts not in state:
+            return False
+        del state[thread_ts]
+        save_state(state)
+        return True
 
 
 def load_channels() -> dict:
@@ -108,12 +132,9 @@ def is_reset(text: str) -> bool:
 
 
 def reset_thread(thread_ts: str, say) -> None:
-    state = load_state()
-    if thread_ts not in state:
+    if not pop_thread(thread_ts):
         say(text="이 스레드에는 연결된 세션이 없습니다.", thread_ts=thread_ts)
         return
-    del state[thread_ts]
-    save_state(state)
     say(text="세션 연결을 초기화했습니다. 새로 멘션하시면 새 세션이 시작됩니다.", thread_ts=thread_ts)
 
 
@@ -159,8 +180,7 @@ def process(
     client,
     resume_id: str | None = None,
 ):
-    state = load_state()
-    entry = state.get(thread_ts)
+    entry = load_state().get(thread_ts)
     is_first_in_thread = entry is None
 
     if resume_id is None and entry:
@@ -172,8 +192,7 @@ def process(
         final_id = session_id or resume_id
 
         if final_id:
-            state[thread_ts] = {"session_id": final_id, "project": project_name}
-            save_state(state)
+            set_thread(thread_ts, {"session_id": final_id, "project": project_name})
 
         if is_first_in_thread and final_id:
             files = referenced_files(project_dir / "CLAUDE.md")
