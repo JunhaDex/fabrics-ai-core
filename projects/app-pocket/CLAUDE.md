@@ -16,7 +16,11 @@
 app-pocket/          # .git 없음. 세션의 작업 디렉터리
   aos/               # fabrics-pocket-aos (Kotlin)
   ios/               # fabrics-pocket-ios (Swift)
+  bridge-test/       # 저장소 없음. 브릿지 테스트용 Vite + React 임시 페이지 (localhost:5173)
 ```
+
+- `bridge-test/`는 git으로 추적되지 않는 검증 도구다. 실행 방법과 포트는
+  `bridge-test/README.md`를 따른다.
 
 - **git 명령은 대상을 명시한다**: `git -C aos status`, `git -C ios commit`.
   컨테이너에서 `git` 명령을 그냥 실행하면 저장소를 찾지 못한다.
