@@ -55,6 +55,36 @@ type BridgeResult<T> =
 요청 식별자 발급과 대기 중인 Promise 관리, 아래 와이어 메시지의 직렬화를
 담당한다. 채널 객체(`nativeBridgeChannel`)는 내부용이며 웹앱이 직접 쓰지 않는다.
 
+### 주입 스크립트
+
+- 원본은 `app-pocket-bridge.js`(이 문서와 같은 폴더)다. 저장소 빌드는 메타 저장소를
+  읽을 수 없으므로 aos `app/src/main/assets/bridge.js`, ios `fabrics-pocket-ios/bridge.js`에
+  **바이트 단위로 같은 복사본**을 둔다. 수정은 원본에서 먼저 하고 양쪽에 복사한다
+- 스크립트 본문은 웹 층에 그대로 보이므로 주석에도 래퍼 이름을 쓰지 않는다
+- 네이티브는 끝의 `/*BRIDGE_CONFIG*/`를 JSON 객체
+  `{ capabilities, runtimeVersion, hosts }`로 치환해 주입한다
+  - `capabilities`는 네이티브 핸들러 레지스트리의 키에서 만든다. 구현되지 않은
+    메서드는 목록에 들어갈 수 없다
+  - `hosts`는 내부 표시 허용 도메인 목록이다
+- 스크립트는 다음 조건에서 아무것도 정의하지 않는다: 하위 프레임, http(s)가 아닌
+  문서, `hosts` 밖의 호스트, 채널 객체가 없는 경우. 네이티브의 origin·프레임 검사와
+  별개로 두는 이중 방어다
+- 플랫폼은 채널 객체로 구분한다. Android는 `window.nativeBridgeChannel`,
+  iOS는 `window.webkit.messageHandlers.nativeBridgeChannel`이다
+- iOS의 수신 함수는 `window.__nativeBridgeReceive(<JSON 문자열>)`이다. 열거되지 않고
+  덮어쓸 수 없는 속성으로 정의한다. Android는 채널 객체의 `onmessage`로 받으므로
+  전역 함수가 없다
+
+### Android origin 규칙
+
+`allowedOriginRules`는 포트 와일드카드를 지원하지 않고, 포트를 생략하면 80·443만
+일치한다. 그래서 허용 호스트만으로는 로컬 개발 포트를 열 수 없다. 규칙은 허용
+호스트마다 `https://<host>`, 그리고 시작 URL의 origin으로 만든다. `onPostMessage`에서
+`isMainFrame`과 `sourceOrigin`의 호스트를 다시 검사한다.
+
+결과적으로 Debug에서 시작 URL과 포트가 다른 localhost 페이지로 이동하면 Android에서는
+브릿지가 주입되지 않는다(iOS는 호스트만 본다). 탑재할 페이지는 시작 URL로 고른다.
+
 ### 와이어 메시지 (JSON 문자열)
 
 ```jsonc
@@ -68,12 +98,21 @@ type BridgeResult<T> =
 
 // 네이티브 → 웹: 이벤트. id가 없다
 { "event": "app.resume", "data": { } }
+
+// 웹 → 네이티브: 문서 준비 알림. 주입 직후 한 번 보낸다
+{ "ready": true }
 ```
 
+- `ready`는 전송 계층 메시지다. Android는 웹이 먼저 보낸 메시지의 reply proxy로만
+  웹에 메시지를 보낼 수 있으므로, 이 메시지의 proxy를 보관해 이벤트 전송에 쓴다.
+  iOS는 무시한다
 - 요청 식별자는 주입 스크립트가 발급하며, 한 페이지 생명주기 안에서 유일하면 된다
 - 네이티브는 알 수 없는 `method`에 `error` / `UNSUPPORTED`로 응답한다.
   무응답으로 두지 않는다
-- 페이지가 이동하면 대기 중인 응답은 버린다
+- `params`가 있으나 객체가 아니면 `error` / `INVALID_PARAMS`로 응답한다. JSON
+  파싱에 실패했거나 `id`가 없는 메시지는 응답할 대상이 없으므로 무시한다
+- 페이지가 이동하면 대기 중인 응답은 버린다. 새 문서의 스크립트는 모르는 `id`의
+  응답을 무시한다
 
 ## 4. 이름 규칙
 
@@ -147,8 +186,14 @@ type BridgeResult<T> =
 
 - UA: 기본 UA를 교체하지 않고 끝에 ` <앱 토큰>/<앱 버전>`을 덧붙인다.
   Android는 기본 `userAgentString`에 이어 붙이고, iOS는
-  `applicationNameForUserAgent`를 쓴다. 런타임 버전은 넣지 않는다
-- 커스텀 헤더는 내부 표시 허용 도메인으로 가는 요청에만 붙인다
+  `applicationNameForUserAgent`의 기본값(`Mobile/<build>`)에 이어 붙인다. 이 값은
+  웹뷰를 생성하기 전에 configuration에 넣어야 적용된다. 런타임 버전은 넣지 않는다
+- 앱 버전은 Android `versionName`, iOS `CFBundleShortVersionString`이다
+- 커스텀 헤더는 내부 표시 허용 도메인으로 가는 **첫 문서 요청과 세션 부트스트랩
+  요청에만** 붙인다. 웹뷰가 시작한 이동과 하위 리소스 요청에 헤더를 붙이려면 요청을
+  가로채 다시 로드해야 하는데, 이는 내부 이동을 웹뷰에 맡겨 cross-document View
+  Transitions를 유지한다는 셸 결정과 충돌한다. 서버는 첫 요청에서 받은 앱 정보를
+  세션에 보관해 쓴다. 구현은 v0.2 인증과 함께 한다
 
 | 헤더 | 값 |
 |---|---|
@@ -156,8 +201,16 @@ type BridgeResult<T> =
 | `X-App-Version` | 앱 버전 |
 | `X-App-Platform` | `android` 또는 `ios` |
 
-- 앱 토큰은 앱마다 다르므로 빌드 설정 집약 지점(Android flavor, iOS
-  `Pocket.xcconfig`)에 둔다
+- 앱 토큰은 앱마다 다르므로 빌드 설정 집약 지점(Android flavor의 `APP_TOKEN`, iOS
+  `Pocket.xcconfig`의 `POCKET_APP_TOKEN`)에 둔다. v0.1 값은 `StylistApp`이다
+
+## 7-1. 런타임 버전
+
+- 빌드 설정의 상수로 둔다. Android는 `defaultConfig`의 `RUNTIME_VERSION`, iOS는
+  `Config/Runtime.xcconfig`의 `POCKET_RUNTIME_VERSION`이다. 앱마다 바뀌지 않으므로
+  앱 차원 집약 지점(flavor, `Pocket.xcconfig`)에 두지 않는다
+- 릴리스할 때 git tag(`vX.Y.Z`)와 같은 커밋에서 올린다. 빌드 시점에 `git describe`를
+  읽지 않는다. shallow clone과 태그가 없는 브랜치에서 값이 깨지기 때문이다
 
 ## 8. 미정 사항
 

@@ -208,7 +208,10 @@ Slack: `C0C52CS9QFK`
     계약이 안정되면 `app-bridge` 저장소의 playground로 옮기는 것을 검토한다
   - 포트는 `5173`(`127.0.0.1` 바인딩, `strictPort`)이다. `tools/dev-env`에 등록하지
     않으므로 `devctl reverse`가 포워딩하지 않는다. Android는 `adb reverse tcp:5173
-    tcp:5173`을 직접 실행하고, pocket의 Debug 시작 URL을 이 포트로 바꿔 탑재한다
+    tcp:5173`을 직접 실행하고, pocket의 Debug 시작 URL을 이 포트로 바꿔 탑재한다.
+    시작 URL은 커밋하지 않는 로컬 덮어쓰기로 바꾼다(Android `local.properties`의
+    `debug.startUrl`, iOS `Config/Local.xcconfig`). Android는 브릿지를 시작 URL의 origin에만
+    주입하므로 탑재할 페이지는 시작 URL로 고른다
   - 앱 밖의 브라우저에서는 `?mock`으로 모의 브릿지를 설치해 화면을 확인한다. 실제
     브릿지가 있으면 설치하지 않는다
   - 계약 타입을 강제하지 않는다. 목록에 없는 메서드와 잘못된 params를 보내
@@ -463,7 +466,24 @@ capability 목록이다.
       생략한다. 2단계에서 config 자산으로 교체한다
     - [x] 시스템 스플래시, 로딩 화면, WebView 배경은 같은 배경색 하나를 쓴다. 시스템
       다크 모드에 따라 light `#FFFFFF`, dark `#0A0A0A`이며, 2단계에서 앱별 config 값이 된다
-  - [ ] S6 브릿지 기반 레이어
+  - [ ] S6 브릿지 기반 레이어 (aos `4675b74`, ios `d477f62`, `feat/bridge-base`)
+    - [x] 주입 스크립트는 하나다. 원본은 `docs/architecture/app-pocket-bridge.js`이고 양
+      저장소에 바이트 단위로 같은 복사본을 둔다. 저장소 빌드가 메타 저장소를 읽을 수 없기 때문이다
+    - [x] capability 목록은 네이티브 핸들러 레지스트리의 키에서 만든다. v0.1 S6 시점에는
+      `app.openSettings` 하나다. 호출부터 `ok` 응답까지 전체 경로를 S8 전에 검증하려고 S6에 넣었다
+    - [x] 앱 토큰은 `StylistApp`, 런타임 버전은 빌드 설정 상수(`0.1.0`)다. 런타임 버전은
+      릴리스 태그와 같은 커밋에서 올리며 `git describe`를 읽지 않는다
+    - [x] 커스텀 HTTP 헤더는 첫 문서 요청과 세션 부트스트랩 요청에만 붙이기로 하고 v0.2로
+      미룬다. 모든 요청에 붙이려면 이동을 가로채 다시 로드해야 해 S7의 View Transitions
+      유지 결정과 충돌한다
+    - [x] Android origin 규칙은 포트 와일드카드가 없어 `https://<허용 호스트>`와 시작 URL의
+      origin으로 만든다. 네이티브→웹 전송은 웹이 먼저 보낸 `ready` 메시지의 reply proxy를 쓴다
+    - 검증 완료(Android, bridge-test): 주입, UA 토큰, capability, runtimeVersion, `UNSUPPORTED`,
+      `INVALID_PARAMS`(숫자·배열), `app.openSettings` ok, 설정에서 복귀 시 `app.resume`, 콜드
+      스타트에 `app.resume` 미발생, 시작 URL과 포트가 다른 페이지에 미주입
+    - 검증 완료(iOS): 주입, UA 토큰(기본값 `Mobile/15E148` 유지), capability, runtimeVersion
+    - [ ] 남은 검증(iOS): 호출 경로와 `app.resume`. 시뮬레이터가 headless라 탭 조작을 하지 못했다
+    - [ ] PR 생성과 squash merge
   - [x] S7 셸 기본 동작 (aos `e617297`, ios `ca687b9`, 각 PR #5)
     - [x] WebView 배경색을 웹앱 테마와 맞춘다. 웹앱의 페이지 이동이 문서 전체를 교체하는
       방식(hard navigation)이면, 이전 문서가 사라지고 새 문서가 그려지기 전 구간에
@@ -510,7 +530,8 @@ capability 목록이다.
 - 진행 순서: 웹서버가 준비되었으므로 S4는 로딩 성공 경로와 safe area까지 검증할 수
   있다. S5와 S7도 stylist-web 화면으로 검증한다. S6, S8, S10은 브릿지 테스트 페이지가,
   S9는 원격 설정 JSON이 있어야 한다
-- 다음 행동: S6 착수. Debug 시작 URL을 `http://localhost:5173`으로 바꿔 `bridge-test`를 탑재한다
+- 다음 행동: S6 iOS 호출 경로 검증 후 양 저장소 PR을 merge한다. 이어서 S7의 배경색·모드 브릿지
+  이벤트와 S8을 진행한다
 
 ## 다음 버전 (계획)
 
