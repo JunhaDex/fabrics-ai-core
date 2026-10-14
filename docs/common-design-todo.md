@@ -165,11 +165,23 @@
   해소하지 않는다. `sem.spacing.*` 슬롯을 추가하면 이 목록에도 넣는다. v0.3 이전 컴포넌트는
   spacing 슬롯을 padding 에만 쓰고 padding 은 `layoutClass()` 가 걸러 내므로 영향이 없어 옮기지 않았다
 
+- v0.5 테마 전환(2026-10-13): Storybook 은 `data-theme` 속성으로 테마를 런타임 전환한다. 소비 프로젝트용
+  `theme.css`(`:root` 계약)는 그대로 두고, 같은 Style Dictionary 출력에서 선택자만 바꾼 `theme.scoped.css`
+  (`[data-theme="<name>"]`, `[data-theme][data-mode]`, 레이어는 nesting 으로 감쌈)를 Storybook 전용으로
+  추가 생성한다. 근거: Tailwind `@theme` 은 선택자 아래에 둘 수 없고 브릿지가 `var(--sem-*)` 를 가리켜
+  슬롯 값 교체만으로 전환된다. 테마별 Storybook 빌드는 설정 3벌·Composition 에서 애드온 미동작으로 기각.
+  따라서 테마는 슬롯 값과 스타일 레이어만 채우고, 원시 값이 필요하면 공통 `packages/tokens` 에 추가한다
+- v0.5 테마 밀도(2026-10-13): brutalism compact(컨트롤 28px), neutral 기준(36px), tactile-surface
+  comfortable(40px). brutalism 은 두꺼운 테두리가 경계를 만들어 여백을 줄여도 구분되고, 데이터 중심 용도를
+  맡는다. tactile-surface 는 이중 그림자가 겹치지 않을 간격과 볼록 면이 보일 안쪽 패딩이 필요하다.
+  compact 에서도 포인터 대상은 WCAG 2.5.8(24×24px)을 지킨다
+- v0.5 테마 스타일은 초안으로 만든다. 각 테마의 고도화는 별도 세션에서 진행한다(2026-10-13)
+
 ## 다음 버전 (계획)
-- v0.5 테마: brutalism, tactile-surface (v0.2~0.4 컴포넌트로 슬롯·스타일 레이어 검증)
 - v0.6 fabrics 도메인 컴포넌트: 목록은 첫 소비 프로젝트 기획 시 확정
 
 ## 완료
+- v0.5.0 (2026-10-14) 테마: `theme-brutalism`(compact, 직각·외곽선+하드 오프셋 그림자), `theme-tactile-surface`(comfortable, 밝은/어두운 그림자 쌍의 볼록·오목) 초안 추가. 테마 빌드를 `buildTheme(name, modes)`로 공용화하고 `theme.scoped.css`(`[data-theme]`)로 Storybook 테마 툴바와 테마별 테스트 프로젝트(`storybook:<theme>`)를 만들었다. 모드별 `color-scheme` 출력. 의미 슬롯 56 → 62개(`shadow.control`·`control-pressed`·`field`, `spacing.press`, `font.body`, `color.border-field`). 필드 경계 3:1 확보로 neutral 필드 테두리가 gray-500으로 진해지고 Checkbox radius가 4px로 바뀌었다(시각 변화). 크기 단언은 `slotPx()`로 슬롯 값을 읽고, `Accessibility/TargetSize`·`FieldBoundary`가 모든 테마·모드에서 24px·3:1을 단언한다. 테스트 151 → 473개(3개 테마 합계)
 - v0.4.0 (2026-10-13) 레이아웃 컴포넌트: 내비게이션 3종(TopBar, SideNav, BottomTabBar), Dialog, AlertDialog, Footer, Columns, BentoGrid를 DoD 3요건으로 완성. 내비는 stylist-web 로컬 AppShell을 요구사항 입력으로 삼아 승격했고, `{ href, label, icon, current? }` 배열 + `linkComponent`로 라우터에 의존하지 않는다. Dialog는 md 미만에서 하단 시트로 전환하고, Columns·BentoGrid는 뷰포트가 아닌 컨테이너 쿼리로 펼친다. 의미 슬롯 53 → 56개(`scrim`, `spacing.bar`, `spacing.nav`), Toast viewport를 `z-60`으로 올려 모달 위에서 조작 가능하게 했다. 테스트 118 → 151개
 - v0.3.0 (2026-10-05) 데이터 표시 컴포넌트: Badge, Separator, Tabs, Accordion, Table, DataTable(단일 열 정렬·다중 선택·클라이언트 페이지네이션)을 DoD 3요건으로 완성. 톤 매트릭스(6톤 × solid/subtle/outline)와 셀 패딩 슬롯으로 의미 슬롯 41 → 53개, 대비 기준(텍스트 4.5:1·테두리 3:1) 적용으로 기존 테마 값 4개 변경(dark Button primary·danger 글자색 반전). 테스트 81 → 118개
 - v0.2.0 (2026-09-28) 폼/피드백 컴포넌트: 폼 11종(Label, Input, Textarea, Field, Checkbox, RadioGroup, Switch, Select, Slider, Toggle, ToggleGroup)과 피드백 7종(Alert, Toast, Tooltip, Popover, Progress, Spinner, Skeleton)을 DoD 3요건으로 완성. 기반 레이어로 아이콘(`lucide` + `<Icon>`)과 모션 토큰을 추가하고, 의미 슬롯을 22 → 41개로 늘렸다. 도구 정비로 ESLint+Prettier 공통 설정(oxlint 제거), `a11y.test: 'error'` 승격, PR CI 워크플로를 도입했다. 테스트 6 → 81개
@@ -177,7 +189,6 @@
 - v0.1.0 (2026-09-22) 최초 골격: 토큰→테마→코어→Storybook 파이프라인 연결. `packages/tokens`(DTCG primitives/semantic, `@theme` CSS 변수), `packages/core`(Button variant 4·size 3·`asChild`, `layoutClass`, tsdown), `themes/neutral`(light/dark 단일 번들), `apps/storybook`(`data-mode` 툴바). changesets → CHANGELOG → 태그 → GitHub Packages publish 파이프라인 검증 완료
 
 ## 미확정 사항
-- (stylist-web 제안, 2026-10-12) theme-neutral 이 모드별 `color-scheme` 을 지정하지 않아 dark 모드에서도 스크롤바·기본 폼 컨트롤이 light 로 그려진다. `[data-mode="dark"] { color-scheme: dark }`(light 는 `light`)를 테마 CSS 에 넣을지. stylist-web 은 `@repo/ui` 진입 CSS 에 임시로 정의해 두었다
 - `@storybook/addon-vitest` 10.6.0 의 peer 는 vitest ^3 || ^4 인데 설치본은 5.0.1 이라 `pnpm install` 에서 peer 경고가 난다. 테스트는 통과한다. Storybook 갱신 시 함께 확인한다
 - 로컬 설치 검증(`npm view @junhadex/core`): `.zshrc`에 `GITHUB_TOKEN_PKG`(classic PAT, `read:packages`) 설정 후 확인 필요. 0.1.1 tarball에 README가 포함된 것은 `npm pack --dry-run`으로 확인함
 - fabrics 도메인 컴포넌트 v1 목록 (첫 소비 프로젝트 기획 시)
@@ -195,3 +206,9 @@
 - Field + RadioGroup 조합. Field는 `<label htmlFor>`를 쓰는데 radiogroup은 div라 레이블이 걸리지 않는다. 그룹 레이블은 `aria-labelledby`나 fieldset/legend가 필요하므로 Field에 그룹 모드를 넣을지 판단해야 한다
 - Select의 옵션 그룹(optgroup) 지원과 Slider의 범위(2-thumb) 지원 여부. props 래핑 API의 경계이며, 실제 요구가 생길 때 추가한다
 - Storybook 자체 호스트 위치와 시기
+- (2026-10-15 실측) 테두리가 있는 컨트롤(secondary Button, Input)이 primary Button 보다 2px 크다(1px border). 모든 테마
+  공통이며 v0.4 부터 있었다. 같은 행에 놓일 때 높이를 맞출지(border 를 그림자로 옮기거나 primary 에 투명 border) 판단 필요
+- (2026-10-15 실측) `color.track`(Progress·Slider 의 채워지지 않은 트랙)이 페이지 면 대비 1.27–1.93 이다(모든 테마).
+  WCAG 1.4.11 적용 여부는 해석이 갈린다(Switch 는 더 진한 색을 써서 무관)
+- (2026-10-15 실측, tactile-surface 고도화 과제) light 에서 subtle Badge 면이 gray-100 페이지와 거의 구분되지 않는다.
+  여유가 적은 대비: ring 3.35, outline Badge success·warning 4.56·4.57, brand 대 면 4.70
