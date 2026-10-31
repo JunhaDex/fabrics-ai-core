@@ -89,28 +89,13 @@ Slack: `C0CDK58U22F`
   `docs/architecture/trama-html-conversion.md`에 현행 명세로 둔다. 다른 언어로 만드는 서버와 외부 AI(MCP)가
   같은 계약을 따르기 때문이다. 기계 판독용 계약 파일(JSON Schema, 적합성 fixture, CSS 허용 목록)도 같은 폴더에 둔다
 
-## 진행 중: v0.2 문서 모델과 변환기
+## 진행 중
 
-- 컨텍스트: 편집기 UI 없이, 문서를 검증·적용하는 model과 HTML/CSS로 바꾸는 render를 먼저 만들어 계약을 고정한다
-- 핵심 기능 (모두 완료되면 릴리스):
-  - [x] `src/model`: zod 스키마, `apply_ops`(`create`·`set`·`move`·`delete`) 검증·적용, fractional index, 트리 순환 검사
-  - [x] `src/render`: Frame·Section·container·text·image를 flex/grid/absolute와 sizing 규칙에 따라 HTML/CSS로 변환 (base 구간만)
-  - [x] 결정성을 golden 테스트로 검증
-  - [x] `docs/architecture/`: 문서 모델 명세 확정, `trama-html-conversion.md` 작성, `trama-ops.schema.json`과 적합성 fixture 생성
-- 세부 step:
-  - [x] 테스트 러너(vitest)와 zod 4 추가
-  - [x] model: 값 형식·속성 키 스키마, 트랜잭션 스키마
-  - [x] model: fractional index, 부모 규칙, 순환 검사, 연산 적용과 원자성
-  - [x] render: 중간 트리, CSS 규칙 정렬, `export`·`srcdoc`·`annotated` 직렬화
-  - [x] 계약 파일 생성 (`src/model/contract.test.ts`가 메타 저장소에 스냅숏으로 쓴다)
-- 다음 행동: v0.2 핵심 기능 완료. 주석 점검 후 push·PR, 릴리스한다
+_(현재 없음. 다음 착수 대상은 v0.3)_
 
 ## 다음 버전 (계획)
 
 1단계(web)
-- v0.2 문서 모델과 변환기: model 스키마와 `apply_ops` 검증·적용, fractional index, 트리 순환 검사.
-  Frame·Section·컨테이너·텍스트·이미지를 flex/grid/absolute와 sizing 규칙에 따라 HTML/CSS로 변환. golden 테스트.
-  `docs/architecture/` 명세 2개 작성. UI 없음
 - v0.3 작업 영역: 보드 팬/줌, Frame별 `srcdoc` iframe, 오버레이 선택(역변환 좌표), 레이어 트리, 속성 패널,
   드래그앤드롭 삽입 인덱스, `LocalSource`·IndexedDB·Undo, HTML/CSS 내보내기
 - v0.4 반응형과 오버플로: Frame별 BP 목록, BP override, `minWidth`, `<picture>`, fold 라인·minWidth 점선·빨간
@@ -125,6 +110,7 @@ Slack: `C0CDK58U22F`
 - 인프라: terraform
 
 ## 완료
+- v0.2 (2026-10-31) 문서 모델과 변환기: `apply_ops`(`create`·`set`·`move`·`delete`) 검증·적용과 노드 5종의 HTML/CSS 변환(`export`·`srcdoc`·`annotated`), golden 테스트. 계약 문서 2개와 JSON Schema·적합성 fixture를 web 테스트가 생성
 - v0.1 (2026-10-31) 최초 골격: Next.js 앱과 `src/model`·`src/render`·`src/editor` 골격, common-design(`theme-neutral`) 빈 편집기 셸, `cliff.toml`. 프로젝트 `CLAUDE.md`·색인·Slack 매핑 구성
 
 ## 미확정 사항
