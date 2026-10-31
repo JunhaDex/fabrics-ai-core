@@ -11,6 +11,7 @@
 | app-pocket | 구축중 | https://github.com/JunhaDex/fabrics-pocket-aos · https://github.com/JunhaDex/fabrics-pocket-ios | `projects/app-pocket/aos/`, `projects/app-pocket/ios/` | 웹앱 주소만 바꿔 끼우면 새 앱이 되는 OS별 웹뷰 컨테이너. 웹앱에 기기 기능 브릿지를 제공 (Kotlin, Swift) | ADR 0005 |
 | app-bridge | 기획 | (미정) `fabrics-pocket-bridge` | `projects/app-bridge/` | pocket 브릿지 계약의 TypeScript 타입과 런타임 헬퍼. 웹앱이 의존하는 npm 패키지 | — |
 | stylist-web | 구축중 | https://github.com/JunhaDex/fabrics-stylist-web | `projects/stylist-web/` | 옷장 등록과 TPO 코디 추천 웹앱. pocket에 처음 탑재되는 웹앱 (Next.js Multi-Zones, Turborepo). 저장소 이름은 가칭 | — |
+| trama-web | 구축중 | https://github.com/JunhaDex/fabrics-trama-web | `projects/trama-web/` | 자유 캔버스 디자인을 결정적으로 HTML/CSS로 변환하고 사람과 AI가 함께 편집하는 UI 디자인 도구 trama의 편집기 (Next.js) | `architecture/trama-document-model.md` |
 
 ## 상태 값 정의
 - **기획**: 루트 세션에서 구조/요구사항을 논의 중. 아직 별도 저장소 없음.

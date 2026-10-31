@@ -1,0 +1,140 @@
+# trama-web todo
+
+저장소: https://github.com/JunhaDex/fabrics-trama-web · 로컬: `projects/trama-web/`
+Slack: `C0CDK58U22F`
+목적: 자유 캔버스에서 디자인한 화면을 규칙에 따라 결정적으로 HTML/CSS로 변환하고, 사람과 AI가 같은 문서를 실시간으로 함께 편집하는 웹 기반 UI 디자인 도구
+요구사항 명세: `docs/references/fabrics-tala-requirements.md`
+
+## 결정 사항
+
+### 정체성과 요구사항의 정본
+- 이름은 trama다. 서브도메인 `trama.fabrics.*`
+- 설계 원칙 4개(결정적 변환, 하나의 렌더 경로, 단일 소스 반응형, 서버가 최종 검증)와 확정 결정(Q1~Q16)은
+  요구사항 명세가 정본이다. 이 파일에는 옮기지 않고, 명세를 구현 수준으로 구체화한 결정만 적는다
+- 편집기 자체의 UI는 common-design(`@junhadex/core`)으로 만든다. 없는 범용 컴포넌트는 로컬에서 먼저
+  만들고 검증되면 common-design으로 승격한다. Frame iframe 안의 내용은 변환기 출력만 쓰며 common-design과 무관하다
+- 앱이므로 CHANGELOG 생성기는 git-cliff다 (저장소마다 따로 둔다)
+- 명세 Q15 중 서버 항목(TypeScript 단일 공유, Node.js, MCP TypeScript SDK)은 철회한다. 서버는 TypeScript가 아닌
+  언어로 만든다. 편집기 쪽(TypeScript, React)과 나머지 항목(자체 WebSocket + 속성 단위 LWW, PostgreSQL,
+  Playwright + Chromium 헤드리스 렌더)은 유지한다
+
+### 단계 구분
+- 1단계(web): 편집기만 만든다. 서버, 동시 편집, MCP, 헤드리스 렌더, PostgreSQL, 인프라는 만들지 않는다
+- 2단계(server, infra): 동기화 서버, `apply_ops`·MCP 엔드포인트, Playwright 헤드리스 렌더, PostgreSQL,
+  terraform. 1단계가 끝나면 착수한다
+
+### 저장소 구조
+- 구성 요소마다 저장소를 나눈다. 서버의 언어가 달라 한 저장소에 담으면 복잡도만 높아지고 코드 공유의 이점이 없기 때문이다
+  - web: `fabrics-trama-web`, `projects/trama-web/` (1단계)
+  - server, infra: 2단계에 만든다
+- 저장소 사이의 계약(문서 모델, 연산 스키마, 오류 코드, 출력 CSS 허용 목록)은 메타 저장소
+  `docs/architecture/`에 둔다. app-pocket 브릿지 계약과 같은 방식이다
+
+### web 저장소 구성
+- Next.js(App Router) 단일 패키지로 만든다. monorepo 도구(pnpm workspace, Turborepo)는 쓰지 않는다.
+  패키지 매니저는 pnpm, Node `>=24`다
+- 편집기 화면은 클라이언트 컴포넌트로 만든다. 보드, iframe, 오버레이가 모두 브라우저 상태에 의존하기 때문이다
+- 런타임과 도구는 `create-next-app` 템플릿 값을 따른다: Next 16.4, React 19.3, TypeScript 5.9, ESLint 9, Tailwind v4, pnpm 10.23
+- 디렉터리는 `src/model`(스키마, 연산 검증·적용), `src/render`(HTML/CSS 변환기), 편집기 UI(`src/app`,
+  `src/editor`)로 나눈다. 의존 방향은 편집기 → render → model이고, render와 model은 DOM·React·Next에
+  의존하지 않는다 (제안, 승인 대기)
+- 서버가 헤드리스 Chromium에서 불러 쓸 단독 ESM 번들 `render.js`는 Next 빌드와 별도로 tsdown으로
+  만든다(common-design과 같은 번들러). 2단계 착수 시 추가한다 (제안, 승인 대기)
+
+### web·server 계약과 원칙 유지 방식 (제안, 승인 대기)
+- 하나의 렌더 경로(원칙 2): 서버는 변환기를 다시 구현하지 않는다. 헤드리스 Chromium 페이지에 web의
+  `render.js`를 불러 같은 함수로 `srcdoc`·`annotated` 출력을 만든다. 서버 렌더와 `inspect`가 편집기와 같은
+  코드, 같은 엔진을 쓴다
+- 서버가 최종 검증(원칙 4): 서버는 `apply_ops` 검증·적용을 자기 언어로 구현한다. web의 TypeScript 구현과
+  일치하는지는 공유 적합성 fixture로 보장한다
+  - `docs/architecture/trama-ops.schema.json`: web의 zod 스키마에서 생성한 JSON Schema. 서버는 여기서 타입을 만든다
+  - `docs/architecture/trama-ops-conformance/`: `{문서, 연산, 기대 결과 또는 오류 코드}` 사례 묶음. 두 구현이 모두 통과해야 한다
+  - 출력 CSS 허용 목록도 코드가 아니라 데이터 파일로 계약에 둔다
+- 스키마는 zod 4로 정의하고 `z.toJSONSchema()`로 JSON Schema를 생성한다
+
+### 1단계에서 "서버가 최종 검증" 원칙을 지키는 방식 (제안, 승인 대기)
+- 편집기는 문서 상태를 직접 바꾸지 않는다. 모든 편집은 `apply_ops` 연산 배열을 만들어 문서 소스(`DocSource`)에 보낸다
+- 1단계 구현은 `LocalSource`다. 브라우저 안에서 `src/model`의 검증·적용 함수를 호출한다. 2단계에서
+  WebSocket으로 서버에 보내는 `RemoteSource`로 교체한다. 편집기 코드는 바뀌지 않는다
+- 연산 트랜잭션에는 처음부터 `actor`와 `txId`를 둔다. 1단계 actor는 로컬 사용자 하나다
+- Undo는 적용 결과로 역연산을 만들어 actor별 스택에 쌓는다. 트랜잭션 1개가 Undo 1단계다
+- 저장은 IndexedDB이고, 문서 JSON 파일로 내보내기·가져오기를 지원한다
+
+### 문서 모델 (제안, 승인 대기)
+- 초안은 `docs/architecture/trama-document-model.md`다. 핵심은 아래와 같다
+  - 문서는 `객체 ID → 속성 키 → 값`의 평면 맵이고, 충돌 단위는 `(ID, 키)` 하나다
+  - 트리는 `parent` + `order`(fractional index)로 표현하고, 연산은 위치 지정(`first`, `last`, `before`, `after`)만 받는다
+  - override는 `기본키@bp:<BP ID>@var:<속성 ID>=<값>@state:<상태>` 키로 저장한다. BP와 속성을 ID로 참조한다
+  - 연산은 `create`, `set`, `move`, `delete`, `detach` 5개다. 레이아웃·토큰 바인딩·인스턴스 속성 변경은 모두 `set`이다
+  - Undo는 이전 값으로 되돌리는 새 트랜잭션이며, 이후 다른 참여자가 바꾼 키는 건너뛴다
+
+### 변환기 (제안, 승인 대기)
+- `src/render`는 순수 함수다. DOM·브라우저 API에 의존하지 않는다
+- 문서 → 중간 트리(요소 트리 + CSS 규칙 목록) → 직렬화 순서로 변환한다. 직렬화 대상은 3개다
+  - `export`: 내보내기용 HTML/CSS
+  - `srcdoc`: 편집기 iframe용. `data-id`를 포함한다
+  - `annotated`: AI 읽기용 주석 HTML (`data-id`, `data-layout`)
+  세 출력이 같은 중간 트리에서 나오므로 "하나의 렌더 경로" 원칙이 유지된다
+- 결정성 규칙: CSS 규칙은 트리 순서로 내보내고, 노드 안에서는 base → BP 오름차순 → 변형(속성 정의 순서) →
+  상태 순으로 내보낸다. 선언은 속성 이름순으로 정렬하고 숫자 표기를 고정한다. "같은 입력이면 바이트 단위로
+  같은 출력"을 golden 테스트로 검증한다
+- 출력 CSS 허용 목록은 `web-features` 패키지의 Baseline 상태(`high` = Widely available)에서 생성하고, 패키지
+  버전을 고정한다. 허용 목록 밖의 속성은 `apply_ops` 검증 단계에서 거부한다
+
+### 설계 문서 위치
+- 노드 모델·연산 스키마와 HTML 변환 규칙은 `docs/architecture/trama-document-model.md`,
+  `docs/architecture/trama-html-conversion.md`에 현행 명세로 둔다. 다른 언어로 만드는 서버와 외부 AI(MCP)가
+  같은 계약을 따르기 때문이다. 기계 판독용 계약 파일(JSON Schema, 적합성 fixture, CSS 허용 목록)도 같은 폴더에 둔다
+
+## 진행 중: v0.1 최초 골격
+
+- 컨텍스트: web 저장소와 빈 편집기 셸을 만들어 프로젝트 세션으로 전환할 수 있는 상태를 갖춘다
+- 핵심 기능 (모두 완료되면 릴리스):
+  - [ ] web 저장소에 Next.js 앱과 `src/model`, `src/render`, `src/editor` 골격이 있다
+  - [ ] 편집기가 common-design 테마를 적용한 빈 셸로 로컬에서 실행된다
+  - [x] 프로젝트 `CLAUDE.md`와 `.claude/settings.json`이 구성되어 있다
+  - [x] 루트 색인(`PROJECTS.md`, `CLAUDE.md`)과 Slack 채널 매핑이 갱신되어 있다
+- 세부 step:
+  - [x] GitHub 저장소 `fabrics-trama-web` 생성
+  - [x] 전용 Slack 채널 생성 (`C0CDK58U22F`)
+  - [x] `@CodeButler` 초대
+  - [x] `create-next-app`으로 Next.js 프로젝트 생성 (Next 16.4, React 19.3, TypeScript, Tailwind v4, ESLint, App Router, `src/`, pnpm)
+  - [ ] `src/model`, `src/render`, `src/editor` 골격 추가
+  - [ ] GitHub Packages 인증을 설정하고 `@junhadex/core`와 테마 패키지 연결
+  - [ ] `git cliff --init keepachangelog`로 `cliff.toml` 생성, `commit_parsers` 교체
+  - [x] first commit, 원격 저장소로 push
+  - [x] 프로젝트 `CLAUDE.md`(SSOT import, 스택·도메인 규칙, todo 관리 절)와 `.claude/settings.json` 작성
+  - [x] `docs/PROJECTS.md`, 루트 `CLAUDE.md` 색인, `channels.local.json` 갱신
+- 다음 행동: "제안, 승인 대기" 절을 검토해 확정한다
+
+## 다음 버전 (계획)
+
+1단계(web)
+- v0.2 문서 모델과 변환기: model 스키마와 `apply_ops` 검증·적용, fractional index, 트리 순환 검사.
+  Frame·Section·컨테이너·텍스트·이미지를 flex/grid/absolute와 sizing 규칙에 따라 HTML/CSS로 변환. golden 테스트.
+  `docs/architecture/` 명세 2개 작성. UI 없음
+- v0.3 작업 영역: 보드 팬/줌, Frame별 `srcdoc` iframe, 오버레이 선택(역변환 좌표), 레이어 트리, 속성 패널,
+  드래그앤드롭 삽입 인덱스, `LocalSource`·IndexedDB·Undo, HTML/CSS 내보내기
+- v0.4 반응형과 오버플로: Frame별 BP 목록, BP override, `minWidth`, `<picture>`, fold 라인·minWidth 점선·빨간
+  아웃라인 표시, 화면 밖 Frame 가상화
+- v0.5 디자인 토큰: 토큰 표 편집기, modifier, 토큰 순환 검사, 조합 미리보기, 램프 생성기, DTCG 2025.10
+  가져오기/내보내기, `[data-*]`·`prefers-color-scheme` CSS 출력
+- v0.6 컴포넌트: 원본·인스턴스·변형·상태, `.c-*` 클래스와 `data-*` 선택자 출력
+
+2단계(server, infra). 버전 번호는 1단계를 마칠 때 정한다
+- 동기화 서버: WebSocket, 속성 단위 LWW, presence, 연산 로그, PostgreSQL, `RemoteSource`
+- AI: MCP(Streamable HTTP) 도구, Playwright 헤드리스 렌더와 `inspect`, AI 세션 스냅샷과 변경 기록 패널
+- 인프라: terraform
+
+## 완료
+
+## 미확정 사항
+
+- 출력 클래스 명명 규칙: 노드 ID 기반(`.n-<id>`)인지, 사용자가 붙인 이름 기반인지. 결정성은 둘 다 만족하므로 내보낸 코드의 가독성 기준으로 정한다
+- 텍스트 노드의 서식 범위: 노드 하나 안에서 인라인 서식(굵게, 링크 등)을 허용하는지. 명세에 없다
+- 이미지 자산 저장: 1단계 IndexedDB blob, 내보내기 시 파일 묶음 형식, 2단계 객체 저장소
+- 웹폰트: `fontFamily` 토큰이 가리키는 폰트의 로딩 방식과 내보내기 포함 여부
+- 서버 언어와 배포 대상(terraform 프로바이더). 2단계 착수 전에 정한다
+- 2단계 저장소의 등록 방식: todo 파일명 규칙(`<디렉터리명>-todo.md`)과 Slack 채널-디렉터리 1:1 매핑은 저장소가 하나일 때를 전제한다. server·infra 저장소가 생기면 이 todo와 채널을 어떻게 대응시킬지 정한다
+- 문서 모델 초안의 미확정 사항 (`docs/architecture/trama-document-model.md` 11절)
+- 명세 Q15·"기술 스택과 대상 브라우저" 절을 서버 언어 철회에 맞게 고칠지 여부
