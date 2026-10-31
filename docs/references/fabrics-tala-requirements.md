@@ -43,7 +43,7 @@ Oct 31, 2026 · @Dex Kim
 | Q12 | AI 읽기 형식 | 주석 HTML 기본, 단계적으로 깊이 읽기 |
 | Q13 | 컴포넌트 | 원본 + 인스턴스 + 기본 변형(노드별 CSS 속성만) |
 | Q14 | Frame 렌더링 | Frame마다 iframe(`srcdoc`). 보드와 오버레이는 DOM |
-| Q15 | 기술 스택 | TypeScript 단일, React, 자체 WebSocket + 속성 단위 LWW, Node.js, PostgreSQL |
+| Q15 | 기술 스택 | 편집기 TypeScript·React, 자체 WebSocket + 속성 단위 LWW, PostgreSQL. 서버는 TypeScript가 아닌 언어(Python)로 하고 계약은 JSON Schema·적합성 fixture로 공유한다 (2026-10-31 수정) |
 | 추가 | 편집기 대상 브라우저 | 최신 Chrome(Chromium)만 |
 | Q16 | 출력 HTML 대상 | 범용 웹 기준(Baseline Widely available) |
 
@@ -85,12 +85,12 @@ Oct 31, 2026 · @Dex Kim
 2. flex/grid 컨테이너의 자식은 좌표를 갖지 않고 순서(index)만 가진다. 문서 트리 순서가 곧 DOM 순서다.
 3. 자식은 sizing(fill, hug, fixed)을 가진다. 필요하면 min/max 크기를 지정한다.
 4. grid는 기본이 auto-placement(순서대로 셀 채움)이다. 셀 위치와 span 지정은 선택 속성이다.
-5. 자유 좌표는 보드 위 Frame 배치와 `absolute` 컨테이너 안에서만 쓴다. absolute 자식은 제약(좌우·상하 고정, 중앙, 비율)을 가진다.
+5. 자유 좌표는 보드 위 Frame 배치와 `position: absolute`인 노드에서만 쓴다. 노드를 absolute로 바꾸면 그 순간의 렌더 위치(x, y, w, h)를 부모 좌상단 기준으로 저장하며, 제약(우측·중앙 고정 등)은 두지 않는다 (2026-10-31 수정).
 
 **드래그앤드롭**
 
 - flow 컨테이너에 놓으면 드롭 위치가 삽입 인덱스로 바뀐다. 위치와 크기는 컨테이너 규칙과 자식 sizing이 결정한다.
-- absolute 컨테이너에 놓으면 좌표와 기본 제약(좌상단 고정)을 가진다.
+- absolute 노드를 끌면 좌표(x, y)가 바뀐다.
 
 **변환 보장**
 
@@ -267,7 +267,7 @@ AI는 HTML로 읽고, `data-id`로 대상을 지정해 `apply_ops`로 쓴다.
 
 ## 기술 스택과 대상 브라우저
 
-연산 스키마와 검증 규칙을 한 곳에서 정의해 모든 구성 요소가 재사용하도록 TypeScript 단일 스택으로 구성한다.
+연산 스키마와 검증 규칙은 편집기(TypeScript)가 정의하고, JSON Schema와 적합성 fixture로 서버와 공유한다. 서버는 TypeScript가 아닌 언어로 구현한다(2026-10-31 수정. 원래는 TypeScript 단일 스택이었다).
 
 &#91;embedded content: 시스템 구성 · 6개 구성 요소 + 공유 패키지\]
 
@@ -275,12 +275,12 @@ AI는 HTML로 읽고, `data-id`로 대상을 지정해 `apply_ops`로 쓴다.
 
 | 영역 | 선택 | 이유 |
 | --- | --- | --- |
-| 언어 | TypeScript 단일 | 스키마, 검증기, 변환기를 편집기·서버·MCP가 공유 |
+| 언어 | 편집기 TypeScript, 서버 Python | 스키마는 JSON Schema·적합성 fixture로 공유하고, 변환기는 서버가 헤드리스 Chromium에서 편집기 번들을 불러 쓴다 |
 | 편집기 UI | React | 패널, 레이어 트리, 토큰 표 등 일반 UI가 많고 생태계가 큼 |
 | Frame 렌더 | 공유 HTML 변환기 → `srcdoc` | 편집기, 내보내기, 서버 렌더가 같은 함수 호출 |
 | 실시간 동기화 | 자체 WebSocket 서버 + 속성 단위 LWW | 서버가 순서를 정하고 검증하여 위반 변경을 거부할 수 있음 |
-| 서버 | Node.js(또는 Bun) | 동기화, `apply_ops`, MCP를 한 프로세스로 시작, 부하에 따라 분리 |
-| AI 인터페이스 | MCP TypeScript SDK, Streamable HTTP | 원격 AI 클라이언트의 표준 접속 방식 |
+| 서버 | Python | 동기화, `apply_ops`, MCP를 한 프로세스로 시작, 부하에 따라 분리. Playwright·MCP 공식 SDK가 있다 |
+| AI 인터페이스 | MCP Python SDK, Streamable HTTP | 원격 AI 클라이언트의 표준 접속 방식 |
 | 헤드리스 렌더 | Playwright + Chromium | 편집기와 같은 엔진이라 `inspect` 결과가 일치 |
 | 저장소 | PostgreSQL | 노드 속성 테이블 + 연산 로그(변경 기록, AI 세션 Undo, 스냅샷의 근거) |
 

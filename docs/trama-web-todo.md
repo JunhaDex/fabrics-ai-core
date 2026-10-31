@@ -85,20 +85,45 @@ Slack: `C0CDK58U22F`
 - 출력 CSS 허용 목록은 `web-features` 패키지의 Baseline 상태(`high` = Widely available)에서 생성하고, 패키지
   버전을 고정한다. 허용 목록 밖의 속성은 `apply_ops` 검증 단계에서 거부한다
 
+### 미확정 사항에서 확정한 결정 (2026-10-31)
+- 예약 ID는 `_`로 시작하며 ID 정규식에 예약 형식 `^_[a-z]{1,31}$`을 대안으로 둔다. 기본 제공 modifier의 ID는 `mode`가 아니라 `_mode`다
+- 웹폰트는 1단계에서 로드하지 않는다. `fontFamily` 토큰은 `font-family` 목록으로만 출력하고 마지막 항목이 일반 계열(`sans-serif` 등)이어야 한다
+- 요구사항 명세의 Q15와 레이아웃 규칙 5를 확정 결정에 맞게 고친다(서버 언어 철회, 노드 단위 `position`)
+- 컴포넌트 원본의 반응형은 컨테이너 쿼리(`@container`)로 하며 조건은 `@cq:<px>`처럼 BP와 별도로 둔다(v0.6)
+- 중첩 인스턴스 override 경로는 `node.<인스턴스 ID>/<노드 ID>.<키>`처럼 `/`로 잇는다(v0.6)
+- `detach`의 새 노드 ID는 `(인스턴스 ID, 원본 노드 ID)` 해시의 21자 base62로 결정적으로 만든다. enum 옵션 이름 변경 시 `@var` 키는 같은 트랜잭션에서 다시 쓴다(v0.6)
+- 텍스트 인라인 서식은 1단계에서 서식 없는 문자열이다. 도입 시 `[{ text, marks }]` 구간 배열로 하고 marks는 `strong`, `em`, `a`로 제한한다
+- 자산은 `asset` 객체(mime, name, 크기)로 두고 ID는 내용 SHA-256 해시로 한다. 1단계 저장은 IndexedDB blob, 출력 경로는 `assets/<해시>.<확장자>`, image `src`는 URL 문자열 또는 `{ asset }`이다
+- `margin`은 허용하지 않는다. grid 트랙 크기는 `layout.columns`가 트랙 크기 배열(`fr`·`px`·`auto`)도 받도록 확장한다(필요 시)
+- 서버 언어는 Python이다(Playwright와 MCP 공식 SDK). 2단계 착수 시 다시 확인한다
+- 2단계 저장소는 ADR 0005의 컨테이너 디렉터리 방식(`projects/trama/` 아래 `web/`·`server/`·`infra/`, todo·Slack 채널 하나)으로 등록하며, 2단계 착수 시 경로를 옮긴다
+
 ### 설계 문서 위치
 - 노드 모델·연산 스키마와 HTML 변환 규칙은 `docs/architecture/trama-document-model.md`,
   `docs/architecture/trama-html-conversion.md`에 현행 명세로 둔다. 다른 언어로 만드는 서버와 외부 AI(MCP)가
   같은 계약을 따르기 때문이다. 기계 판독용 계약 파일(JSON Schema, 적합성 fixture, CSS 허용 목록)도 같은 폴더에 둔다
 
-## 진행 중
+## 진행 중: v0.5 디자인 토큰
 
-_(현재 없음. 다음 착수 대상은 v0.5)_
+- 컨텍스트: 토큰의 원본을 도구 안에 두고, 노드가 토큰을 바인딩하며, modifier 컨텍스트별 값을 CSS 사용자 정의 속성으로 출력한다
+- 핵심 기능 (모두 완료되면 릴리스):
+  - [x] model: `modifier`·`token` 객체, 노드 토큰 바인딩, 검증(값 형식, 참조 타입, 모든 컨텍스트 조합의 순환, 사용 중, 이름 중복), 경고(`TOKEN_DEPRECATED`, `RAW_TOKEN_BOUND`)
+  - [x] render: `:root`·`:root[data-*]`·`prefers-color-scheme` 블록, `var()` 참조 유지
+  - [x] 편집기: 토큰 표 편집기, modifier 편집과 컨텍스트 복제, 상단 modifier 미리보기 토글, 속성 패널 토큰 바인딩
+  - [x] 조합 미리보기(칸을 누르면 원본 토큰으로 이동), 램프 생성기(OKLCH)
+  - [x] DTCG 2025.10 `tokens.json`·`resolver.json` 내보내기·가져오기
+- 구현 결정:
+  - 기본 제공 modifier `_mode`는 문서에 저장하지 않고 항상 있는 것으로 다룬다. 기존 문서는 이전(마이그레이션) 없이 그대로 쓴다
+  - 토큰 이름 구간은 영숫자만 허용한다. CSS 변수 이름(`.` → `-`)이 서로 겹치지 않게 하기 위해서다
+  - CSS에는 그 Frame이 쓰는 토큰과 그 참조 대상만 낸다. modifier 속성은 `<html>`에 둔다
+  - `style.font-family`는 토큰 바인딩만 받는다(웹폰트를 로드하지 않는 결정과 일반 계열 강제를 토큰에서 보장)
+  - DTCG 내보내기는 다운로드 대신 코드 팝업에 두 파일을 보여주고 복사한다. 그룹이기도 한 토큰 이름은 `$root`로 낸다. 내부 ID는 `$extensions["org.fabrics.trama"]`에 넣는다
+  - DTCG 가져오기는 한 트랜잭션으로 적용한다. 내부 ID 또는 이름으로 기존 토큰을 갱신하고, fontWeight 별칭은 숫자로 바꾸며, 지원하지 않는 타입(shadow 등)은 건너뛰고 알린다
+- 다음 행동: v0.5 핵심 기능 완료. push 전 주석 점검 후 PR, 릴리스한다
 
 ## 다음 버전 (계획)
 
 1단계(web)
-- v0.5 디자인 토큰: 토큰 표 편집기, modifier, 토큰 순환 검사, 조합 미리보기, 램프 생성기, DTCG 2025.10
-  가져오기/내보내기, `[data-*]`·`prefers-color-scheme` CSS 출력
 - v0.6 컴포넌트: 원본·인스턴스·변형·상태, `.c-*` 클래스와 `data-*` 선택자 출력
 
 2단계(server, infra). 버전 번호는 1단계를 마칠 때 정한다
@@ -114,9 +139,4 @@ _(현재 없음. 다음 착수 대상은 v0.5)_
 
 ## 미확정 사항
 
-- 이미지 자산 저장: 1단계 IndexedDB blob, 내보내기 시 파일 묶음 형식, 2단계 객체 저장소
-- 웹폰트: `fontFamily` 토큰이 가리키는 폰트의 로딩 방식과 내보내기 포함 여부
-- 서버 언어와 배포 대상(terraform 프로바이더). 2단계 착수 전에 정한다
-- 2단계 저장소의 등록 방식: todo 파일명 규칙(`<디렉터리명>-todo.md`)과 Slack 채널-디렉터리 1:1 매핑은 저장소가 하나일 때를 전제한다. server·infra 저장소가 생기면 이 todo와 채널을 어떻게 대응시킬지 정한다
-- 문서 모델 초안의 미확정 사항 (`docs/architecture/trama-document-model.md` 11절)
-- 명세 Q15·"기술 스택과 대상 브라우저" 절을 서버 언어 철회에 맞게 고칠지 여부. 레이아웃 규칙 5("absolute 컨테이너")도 노드 단위 `position` 결정과 어긋난다
+- 배포 대상(terraform 프로바이더). 조직이 쓰는 클라우드와 비용 기준을 정한 뒤 2단계 착수 전에 정한다

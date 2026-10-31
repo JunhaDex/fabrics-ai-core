@@ -5,7 +5,7 @@ trama 문서를 HTML/CSS로 바꾸는 규칙의 현행 명세다. 편집기(web)
 속성 키는 `trama-document-model.md`가 정본이다. 요구사항은 `../references/fabrics-tala-requirements.md`의
 "레이아웃 모델과 HTML 변환 규칙" 절이다.
 
-- 상태: v0.4. base 구간과 BP override를 다룬다. 토큰, 컴포넌트, 스타일 허용 목록은 해당 버전에서 추가한다
+- 상태: v0.5. base 구간, BP override, 디자인 토큰을 다룬다. 컴포넌트, 스타일 허용 목록은 해당 버전에서 추가한다
 - 검증: web 저장소의 golden 테스트(`src/render/__golden__/`)가 이 문서의 출력 형식을 바이트 단위로 고정한다
 
 ## 1. 변환 단계
@@ -141,6 +141,21 @@ grid 부모. 기본 sizing은 두 축 모두 `fill`(셀을 채움)이다.
 - `position: absolute`, `left: {x}px`, `top: {y}px`, `w`·`h`가 있으면 `width: {w}px`, `height: {h}px`.
   `x`, `y`가 없으면 0이다
 - `size.*`, `grid.*`는 출력하지 않는다
+
+### 디자인 토큰
+- 토큰은 CSS 사용자 정의 속성이 된다. 이름은 `--` 뒤에 토큰 이름의 `.`을 `-`로 바꾼 것이다(`color.action.primary`
+  → `--color-action-primary`). 토큰 이름 구간은 영숫자만 쓰므로 서로 다른 토큰이 같은 이름이 되지 않는다
+- 출력 대상은 그 Frame의 노드가 바인딩한 토큰과, 그 토큰이 어느 컨텍스트에서든 참조하는 토큰이다. 이름순으로 낸다
+- 노드의 바인딩은 `var(--이름)`, 토큰의 참조는 해석값이 아니라 `var(--대상)`으로 낸다. 조합 해석은 브라우저가 한다
+- 원시값 표기는 노드 스타일 값과 같다. `fontFamily`는 일반 계열은 그대로, 그 밖의 이름은 큰따옴표로 감싸 `, `로 잇는다
+- 규칙 순서: 리셋 규칙(과 `picture`) 뒤에 `:root { … }`를 낸다. 값은 모든 modifier가 기본 컨텍스트일 때의 값이다.
+  이어서 modifier 순서(`_mode` 먼저, 이후 이름순)와 `contexts` 순서로, 기본이 아닌 컨텍스트마다
+  `:root[data-<modifier 이름>="<컨텍스트>"] { … }`를 낸다. 그 modifier로 달라지는 토큰 중 `:root` 값과 다른 것만 담는다
+- mode의 `dark` 블록은 `@media (prefers-color-scheme: dark) { :root:not([data-mode]) { … } }`로도 낸다. 이 블록은
+  BP `@media` 블록보다 앞에 둔다. `data-mode` 속성이 있으면 그것이 우선한다
+- modifier 속성(`data-mode` 등)은 `<html>`에 둔다. 참조 토큰의 `var()`는 선언된 요소에서 해석되므로, 하위 요소에
+  다른 컨텍스트를 두면 참조 토큰이 바뀌지 않는다
+- 코드 조각(snippet)의 CSS에는 `:root`로 시작하는 토큰 규칙을 함께 담는다
 
 ### BP override (`@media`)
 - 노드의 상태는 base와 BP마다 하나씩 있다. BP 상태는 base 값에 `minWidth`가 그 BP 이하인 BP의 override를 오름차순으로

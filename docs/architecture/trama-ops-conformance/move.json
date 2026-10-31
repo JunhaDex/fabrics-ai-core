@@ -81,7 +81,8 @@
               "content": "hello"
             }
           }
-        }
+        },
+        "warnings": []
       }
     },
     {
@@ -163,7 +164,8 @@
               "content": "hello"
             }
           }
-        }
+        },
+        "warnings": []
       }
     },
     {

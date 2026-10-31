@@ -67,7 +67,8 @@
               "content": "hello"
             }
           }
-        }
+        },
+        "warnings": []
       }
     }
   ]

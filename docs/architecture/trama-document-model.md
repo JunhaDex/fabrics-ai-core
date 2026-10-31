@@ -6,9 +6,9 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 `../references/fabrics-tala-requirements.md`이고, 결정의 근거는 `../trama-web-todo.md`의
 "결정 사항"에 있다. HTML/CSS 변환 규칙은 `trama-html-conversion.md`가 담당한다.
 
-- 상태: v0.4. 노드 5종(frame, section, container, text, image), `breakpoint`, 연산 4개(`create`, `set`, `move`,
-  `delete`), `@bp` 조건 키를 구현했다. 7절 이후(토큰, 컴포넌트, `@var`·`@state`, `detach`)는 해당 버전에서
-  구현하며 그때 확정한다
+- 상태: v0.5. 노드 5종(frame, section, container, text, image), `breakpoint`, `modifier`, `token`, 연산 4개
+  (`create`, `set`, `move`, `delete`), `@bp`·`@ctx` 조건 키, 토큰 바인딩을 구현했다. 8절(컴포넌트), `@var`·`@state`,
+  `detach`는 해당 버전에서 구현하며 그때 확정한다
 - 기계 판독용 계약은 web의 테스트가 생성한다(`vitest run -u`). 손으로 고치지 않는다
   - `trama-ops.schema.json`: 트랜잭션과 종류별 props의 JSON Schema. 소수 자릿수 제한처럼 JSON Schema로
     표현되지 않는 조건은 `description`에 적는다
@@ -39,10 +39,10 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 
 ## 2. 객체 ID
 
-- 정규식 `^[A-Za-z0-9_-]{6,32}$`. 생성하는 쪽(편집기, AI)이 충돌 확률이 무시할 만한
-  랜덤 문자열로 만든다. 편집기는 21자 nanoid를 쓴다
+- 정규식 `^[A-Za-z0-9_-]{6,32}$` 또는 예약 형식 `^_[a-z]{1,31}$`. 생성하는 쪽(편집기, AI)이 충돌 확률이
+  무시할 만한 랜덤 문자열로 만든다. 편집기는 21자 nanoid를 쓴다
 - 이미 있는 ID로 생성하면 `ID_CONFLICT`로 거부한다
-- 예약 ID: `mode`(기본 제공 modifier). 다른 예약 ID는 `_`로 시작하며 사용자 생성에 쓸 수 없다
+- 예약 ID는 `_`로 시작하며 사용자 생성에 쓸 수 없다. `_mode`는 기본 제공 modifier다
 
 ## 3. 객체 종류와 트리
 
@@ -146,7 +146,7 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
   우회하는 속성(`display`, `position`, `flex-*`, `grid-*`, `width`, `height`, `top`, `left`, `float`,
   `margin*` 등)은 목록에 넣지 않는다. 값은 Baseline Widely available 허용 목록 안에 있어야 한다
 - 값은 속성별 형식(Dimension, Color, 키워드) 또는 토큰 바인딩이다
-- v0.3에서 허용하는 스타일 키는 아래와 같다. web-features 기반 허용 목록은 이후 버전에서 이 목록을 대체한다
+- 현재 허용하는 스타일 키는 아래와 같다. web-features 기반 허용 목록은 이후 버전에서 이 목록을 대체한다
 
 | 키 | 값 | 노드 |
 |---|---|---|
@@ -154,6 +154,7 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 | `style.color` | Color | image 제외 |
 | `style.font-size` | Dimension | image 제외 |
 | `style.font-weight` | 100~900의 100 단위 정수 | image 제외 |
+| `style.font-family` | 토큰 바인딩만 (`fontFamily` 토큰) | image 제외 |
 | `style.padding-top`, `-right`, `-bottom`, `-left` | Dimension | frame 제외 |
 | `style.border-width`, `style.border-radius` | Dimension | frame 제외 |
 | `style.border-style` | `none`, `solid`, `dashed`, `dotted` | frame 제외 |
@@ -161,6 +162,9 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 | `style.object-fit` | `cover`, `contain`, `fill` | image |
 
 - frame에 padding이 없는 것은 `safeArea`가 `body`의 padding을 쓰기 때문이다
+- 토큰 바인딩(`{ "token": ID }`)을 받는 키와 토큰 타입: Color 키는 `color`, Dimension 키(`style.*`, `layout.gap`,
+  `layout.rowGap`, `size.*`)는 `dimension`, `style.font-weight`는 `fontWeight`, `style.font-family`는 `fontFamily`.
+  토큰이 없으면 `UNKNOWN_OBJECT`, 타입이 다르면 `TOKEN_TYPE_MISMATCH`다. `@bp` 조건 키에도 바인딩할 수 있다
 
 ### 종류별 고유 속성
 
@@ -232,11 +236,14 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 
 | 키 | 값 |
 |---|---|
-| `name` | 식별자. CSS `data-<name>` 속성 이름이 된다. 전역 유일 |
-| `contexts` | 문자열 배열. 예: `["light", "dark"]` |
+| `name` | 식별자(`^[a-z][a-z0-9-]*$`). CSS `data-<name>` 속성 이름이 된다. 전역 유일이며 `mode`는 예약 |
+| `contexts` | 식별자 배열, 2개 이상, 중복 없음. 예: `["light", "dark"]` |
 | `default` | `contexts` 중 하나 |
 
-- 예약 modifier `mode`(`contexts: ["light", "dark"]`, `default: "light"`)는 항상 존재하고 삭제할 수 없다
+- 예약 modifier `_mode`(`name: "mode"`, `contexts: ["light", "dark"]`, `default: "light"`)는 항상 존재하고 바꾸거나
+  삭제할 수 없다
+- `contexts`에서 빠진 컨텍스트의 `value@ctx:` 키는 같은 트랜잭션 안에서 삭제된다. `default`는 `contexts` 중
+  하나여야 한다(`VALUE_INVALID`). 토큰이 `variesBy`로 가리키는 modifier는 삭제할 수 없다(`TOKEN_IN_USE`)
 - `contexts`는 배열 하나가 LWW 단위다. 두 사람이 동시에 컨텍스트를 추가하면 한쪽이 사라질 수 있다.
   빈도가 낮아 허용한다
 
@@ -244,8 +251,8 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 
 | 키 | 값 |
 |---|---|
-| `name` | 점 경로(`color.action.primary`). 전역 유일 |
-| `tokenType` | DTCG 타입(`color`, `dimension`, `fontFamily`, `fontWeight`, `number`, `duration`, `shadow`, `typography` 등) |
+| `name` | 점 경로(`color.action.primary`). 각 구간은 영문자로 시작하는 영숫자다. 전역 유일 |
+| `tokenType` | DTCG 타입. v0.5는 `color`, `dimension`, `fontFamily`, `fontWeight`, `number` |
 | `value` | 타입에 맞는 원시값 또는 `{ "ref": 토큰 ID }` |
 | `variesBy` | modifier ID 또는 `null` |
 | `value@ctx:<컨텍스트>` | 그 컨텍스트의 값. 없으면 `value`를 상속 |
@@ -258,6 +265,10 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
   생기면 `TOKEN_CYCLE`로 거부한다
 - 노드나 다른 토큰이 참조하는 토큰은 삭제할 수 없다(`TOKEN_IN_USE`)
 - Raw/Alias 구분, 해석값, 역참조, 사용 횟수는 저장하지 않고 계산한다
+- 타입별 원시값: `color`는 Color, `dimension`은 Dimension, `fontFamily`는 문자열 또는 문자열 배열이며 마지막 항목이
+  일반 계열(`serif`, `sans-serif`, `monospace`, `system-ui` 등), `fontWeight`는 1~1000 정수, `number`는 유한한 수
+- 토큰에는 `name`, `tokenType`, `value`가 필요하다. 이름이 겹치면 `NAME_CONFLICT`다
+- 검사 시점: 토큰·modifier를 만들거나 바꿀 때마다 전체 토큰의 이름, 값 형식, 참조, 컨텍스트, 순환을 검사한다
 
 ## 8. 컴포넌트와 인스턴스
 
@@ -324,6 +335,7 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 ```
 
 - `message`는 사람과 AI가 읽는 설명이며 계약에 포함하지 않는다. 판단은 `code`로 한다
+- `warnings`는 적용된 트랜잭션에서 나온 경고 목록이며 없으면 빈 배열이다. 적합성 fixture의 성공 사례에 포함된다
 - `id`는 오류가 난 객체다. `UNKNOWN_OBJECT`에서는 찾지 못한 ID다
 - `SCHEMA_INVALID`의 `opIndex`는 위반 위치가 특정 연산 안이면 그 인덱스, 아니면 `null`이다
 
@@ -368,12 +380,13 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 
 오버플로·잘림 경고는 문서 검증이 아니라 렌더 결과의 검사이므로 `inspect`가 별도로 제공한다.
 
-## 11. 이 문서의 미확정 사항
+## 11. 확정했으나 아직 구현하지 않은 사항
 
-- 텍스트 인라인 서식: `content`를 서식 없는 문자열로 둘지, 서식 구간을 가진 구조로 바꿀지
-- 자산(`asset`) 객체의 저장 방식과 속성
-- 컴포넌트 원본의 반응형: 원본에 `@bp`를 둘 수 없으므로, 원본에 자체 BP를 둘지 컨테이너 쿼리를 쓸지
-- 중첩 인스턴스(컴포넌트 안의 인스턴스)의 override 경로 표기
-- `detach` 시 새 노드 ID 생성 규칙, enum 옵션 이름 변경 시 `@var` 키 일괄 갱신 방식
-- grid 트랙 크기 지정(현재는 균등 열 수만), `margin` 허용 여부
-- 예약 ID `mode`가 2절의 ID 정규식(6자 이상)에 맞지 않는다. 토큰을 구현하는 v0.5에서 예약 ID 이름이나 정규식을 고친다
+결정 근거는 `../trama-web-todo.md`의 "미확정 사항에서 확정한 결정"이다. 해당 버전에서 위 절들에 반영한다.
+
+- 텍스트 인라인 서식: 1단계는 서식 없는 문자열. 도입 시 `[{ text, marks }]` 구간 배열(marks: `strong`, `em`, `a`)
+- 자산: `asset` 객체(mime, name, 크기), ID는 내용 SHA-256 해시. image `src`는 URL 문자열 또는 `{ "asset": ID }`
+- 컴포넌트 원본의 반응형: 컨테이너 쿼리. 조건은 `@cq:<px>`로 BP와 별도
+- 중첩 인스턴스 override 경로: `node.<인스턴스 ID>/<노드 ID>.<키>`
+- `detach`: 새 노드 ID는 `(인스턴스 ID, 원본 노드 ID)` 해시의 21자 base62. enum 옵션 이름 변경 시 `@var` 키를 같은 트랜잭션에서 다시 씀
+- `margin`은 허용하지 않음. grid 트랙 크기는 `layout.columns`의 트랙 크기 배열로 확장(필요 시)

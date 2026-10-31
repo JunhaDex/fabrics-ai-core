@@ -99,7 +99,8 @@
               "minWidth": 768
             }
           }
-        }
+        },
+        "warnings": []
       }
     },
     {
@@ -674,7 +675,8 @@
               "content": "hello"
             }
           }
-        }
+        },
+        "warnings": []
       }
     }
   ]

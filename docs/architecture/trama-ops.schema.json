@@ -27,7 +27,7 @@
                   },
                   "id": {
                     "type": "string",
-                    "pattern": "^[A-Za-z0-9_-]{6,32}$"
+                    "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
                   },
                   "type": {
                     "type": "string",
@@ -37,14 +37,16 @@
                       "container",
                       "text",
                       "image",
-                      "breakpoint"
+                      "breakpoint",
+                      "modifier",
+                      "token"
                     ]
                   },
                   "parent": {
                     "anyOf": [
                       {
                         "type": "string",
-                        "pattern": "^[A-Za-z0-9_-]{6,32}$"
+                        "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
                       },
                       {
                         "type": "null"
@@ -65,7 +67,7 @@
                         "properties": {
                           "before": {
                             "type": "string",
-                            "pattern": "^[A-Za-z0-9_-]{6,32}$"
+                            "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
                           }
                         },
                         "required": [
@@ -78,7 +80,7 @@
                         "properties": {
                           "after": {
                             "type": "string",
-                            "pattern": "^[A-Za-z0-9_-]{6,32}$"
+                            "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
                           }
                         },
                         "required": [
@@ -113,7 +115,7 @@
                   },
                   "id": {
                     "type": "string",
-                    "pattern": "^[A-Za-z0-9_-]{6,32}$"
+                    "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
                   },
                   "props": {
                     "type": "object",
@@ -139,13 +141,13 @@
                   },
                   "id": {
                     "type": "string",
-                    "pattern": "^[A-Za-z0-9_-]{6,32}$"
+                    "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
                   },
                   "parent": {
                     "anyOf": [
                       {
                         "type": "string",
-                        "pattern": "^[A-Za-z0-9_-]{6,32}$"
+                        "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
                       },
                       {
                         "type": "null"
@@ -166,7 +168,7 @@
                         "properties": {
                           "before": {
                             "type": "string",
-                            "pattern": "^[A-Za-z0-9_-]{6,32}$"
+                            "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
                           }
                         },
                         "required": [
@@ -179,7 +181,7 @@
                         "properties": {
                           "after": {
                             "type": "string",
-                            "pattern": "^[A-Za-z0-9_-]{6,32}$"
+                            "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
                           }
                         },
                         "required": [
@@ -207,7 +209,7 @@
                   },
                   "id": {
                     "type": "string",
-                    "pattern": "^[A-Za-z0-9_-]{6,32}$"
+                    "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
                   }
                 },
                 "required": [
@@ -260,25 +262,42 @@
         "layout.gap": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -288,25 +307,42 @@
         "layout.rowGap": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -432,50 +468,67 @@
         "style.color": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "colorSpace": {
-                  "type": "string",
-                  "const": "srgb"
-                },
-                "components": {
-                  "type": "array",
-                  "prefixItems": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "colorSpace": {
+                      "type": "string",
+                      "const": "srgb"
                     },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+                    "components": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3
                     },
-                    {
+                    "alpha": {
                       "type": "number",
                       "minimum": 0,
                       "maximum": 1,
                       "description": "소수 넷째 자리까지"
                     }
+                  },
+                  "required": [
+                    "colorSpace",
+                    "components"
                   ],
-                  "items": false,
-                  "minItems": 3,
-                  "maxItems": 3
+                  "additionalProperties": false
                 },
-                "alpha": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1,
-                  "description": "소수 넷째 자리까지"
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "colorSpace",
-                "components"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -485,25 +538,42 @@
         "style.font-size": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -513,10 +583,54 @@
         "style.font-weight": {
           "anyOf": [
             {
-              "type": "integer",
-              "minimum": 100,
-              "maximum": 900,
-              "multipleOf": 100
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 100,
+                  "maximum": 900,
+                  "multipleOf": 100
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.font-family": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "not": {}
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
             },
             {
               "type": "null"
@@ -526,50 +640,67 @@
         "style.background-color": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "colorSpace": {
-                  "type": "string",
-                  "const": "srgb"
-                },
-                "components": {
-                  "type": "array",
-                  "prefixItems": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "colorSpace": {
+                      "type": "string",
+                      "const": "srgb"
                     },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+                    "components": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3
                     },
-                    {
+                    "alpha": {
                       "type": "number",
                       "minimum": 0,
                       "maximum": 1,
                       "description": "소수 넷째 자리까지"
                     }
+                  },
+                  "required": [
+                    "colorSpace",
+                    "components"
                   ],
-                  "items": false,
-                  "minItems": 3,
-                  "maxItems": 3
+                  "additionalProperties": false
                 },
-                "alpha": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1,
-                  "description": "소수 넷째 자리까지"
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "colorSpace",
-                "components"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -612,25 +743,42 @@
         "layout.gap": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -640,25 +788,42 @@
         "layout.rowGap": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -729,30 +894,47 @@
             {
               "anyOf": [
                 {
-                  "type": "string",
-                  "enum": [
-                    "fill",
-                    "hug"
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "fill",
+                        "hug"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number",
+                          "description": "소수 넷째 자리까지"
+                        },
+                        "unit": {
+                          "type": "string",
+                          "enum": [
+                            "px",
+                            "rem"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    }
                   ]
                 },
                 {
                   "type": "object",
                   "properties": {
-                    "value": {
-                      "type": "number",
-                      "description": "소수 넷째 자리까지"
-                    },
-                    "unit": {
+                    "token": {
                       "type": "string",
-                      "enum": [
-                        "px",
-                        "rem"
-                      ]
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
                     }
                   },
                   "required": [
-                    "value",
-                    "unit"
+                    "token"
                   ],
                   "additionalProperties": false
                 }
@@ -768,12 +950,61 @@
             {
               "anyOf": [
                 {
-                  "type": "string",
-                  "enum": [
-                    "fill",
-                    "hug"
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "fill",
+                        "hug"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number",
+                          "description": "소수 넷째 자리까지"
+                        },
+                        "unit": {
+                          "type": "string",
+                          "enum": [
+                            "px",
+                            "rem"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    }
                   ]
                 },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "size.minWidth": {
+          "anyOf": [
+            {
+              "anyOf": [
                 {
                   "type": "object",
                   "properties": {
@@ -794,36 +1025,21 @@
                     "unit"
                   ],
                   "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
               ]
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "size.minWidth": {
-          "anyOf": [
-            {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
-                },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
-                }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
             },
             {
               "type": "null"
@@ -833,25 +1049,42 @@
         "size.maxWidth": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -861,25 +1094,42 @@
         "size.minHeight": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -889,25 +1139,42 @@
         "size.maxHeight": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1025,50 +1292,67 @@
         "style.color": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "colorSpace": {
-                  "type": "string",
-                  "const": "srgb"
-                },
-                "components": {
-                  "type": "array",
-                  "prefixItems": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "colorSpace": {
+                      "type": "string",
+                      "const": "srgb"
                     },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+                    "components": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3
                     },
-                    {
+                    "alpha": {
                       "type": "number",
                       "minimum": 0,
                       "maximum": 1,
                       "description": "소수 넷째 자리까지"
                     }
+                  },
+                  "required": [
+                    "colorSpace",
+                    "components"
                   ],
-                  "items": false,
-                  "minItems": 3,
-                  "maxItems": 3
+                  "additionalProperties": false
                 },
-                "alpha": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1,
-                  "description": "소수 넷째 자리까지"
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "colorSpace",
-                "components"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1078,25 +1362,42 @@
         "style.font-size": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1106,10 +1407,54 @@
         "style.font-weight": {
           "anyOf": [
             {
-              "type": "integer",
-              "minimum": 100,
-              "maximum": 900,
-              "multipleOf": 100
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 100,
+                  "maximum": 900,
+                  "multipleOf": 100
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.font-family": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "not": {}
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
             },
             {
               "type": "null"
@@ -1119,50 +1464,67 @@
         "style.background-color": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "colorSpace": {
-                  "type": "string",
-                  "const": "srgb"
-                },
-                "components": {
-                  "type": "array",
-                  "prefixItems": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "colorSpace": {
+                      "type": "string",
+                      "const": "srgb"
                     },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+                    "components": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3
                     },
-                    {
+                    "alpha": {
                       "type": "number",
                       "minimum": 0,
                       "maximum": 1,
                       "description": "소수 넷째 자리까지"
                     }
+                  },
+                  "required": [
+                    "colorSpace",
+                    "components"
                   ],
-                  "items": false,
-                  "minItems": 3,
-                  "maxItems": 3
+                  "additionalProperties": false
                 },
-                "alpha": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1,
-                  "description": "소수 넷째 자리까지"
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "colorSpace",
-                "components"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1172,25 +1534,42 @@
         "style.padding-top": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1200,25 +1579,42 @@
         "style.padding-right": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1228,25 +1624,42 @@
         "style.padding-bottom": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1256,25 +1669,42 @@
         "style.padding-left": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1284,25 +1714,42 @@
         "style.border-width": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1328,50 +1775,67 @@
         "style.border-color": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "colorSpace": {
-                  "type": "string",
-                  "const": "srgb"
-                },
-                "components": {
-                  "type": "array",
-                  "prefixItems": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "colorSpace": {
+                      "type": "string",
+                      "const": "srgb"
                     },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+                    "components": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3
                     },
-                    {
+                    "alpha": {
                       "type": "number",
                       "minimum": 0,
                       "maximum": 1,
                       "description": "소수 넷째 자리까지"
                     }
+                  },
+                  "required": [
+                    "colorSpace",
+                    "components"
                   ],
-                  "items": false,
-                  "minItems": 3,
-                  "maxItems": 3
+                  "additionalProperties": false
                 },
-                "alpha": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1,
-                  "description": "소수 넷째 자리까지"
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "colorSpace",
-                "components"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1381,25 +1845,42 @@
         "style.border-radius": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1461,25 +1942,42 @@
         "layout.gap": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1489,25 +1987,42 @@
         "layout.rowGap": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1578,30 +2093,47 @@
             {
               "anyOf": [
                 {
-                  "type": "string",
-                  "enum": [
-                    "fill",
-                    "hug"
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "fill",
+                        "hug"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number",
+                          "description": "소수 넷째 자리까지"
+                        },
+                        "unit": {
+                          "type": "string",
+                          "enum": [
+                            "px",
+                            "rem"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    }
                   ]
                 },
                 {
                   "type": "object",
                   "properties": {
-                    "value": {
-                      "type": "number",
-                      "description": "소수 넷째 자리까지"
-                    },
-                    "unit": {
+                    "token": {
                       "type": "string",
-                      "enum": [
-                        "px",
-                        "rem"
-                      ]
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
                     }
                   },
                   "required": [
-                    "value",
-                    "unit"
+                    "token"
                   ],
                   "additionalProperties": false
                 }
@@ -1617,12 +2149,61 @@
             {
               "anyOf": [
                 {
-                  "type": "string",
-                  "enum": [
-                    "fill",
-                    "hug"
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "fill",
+                        "hug"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number",
+                          "description": "소수 넷째 자리까지"
+                        },
+                        "unit": {
+                          "type": "string",
+                          "enum": [
+                            "px",
+                            "rem"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    }
                   ]
                 },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "size.minWidth": {
+          "anyOf": [
+            {
+              "anyOf": [
                 {
                   "type": "object",
                   "properties": {
@@ -1643,36 +2224,21 @@
                     "unit"
                   ],
                   "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
               ]
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "size.minWidth": {
-          "anyOf": [
-            {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
-                },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
-                }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
             },
             {
               "type": "null"
@@ -1682,25 +2248,42 @@
         "size.maxWidth": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1710,25 +2293,42 @@
         "size.minHeight": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1738,25 +2338,42 @@
         "size.maxHeight": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1874,50 +2491,67 @@
         "style.color": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "colorSpace": {
-                  "type": "string",
-                  "const": "srgb"
-                },
-                "components": {
-                  "type": "array",
-                  "prefixItems": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "colorSpace": {
+                      "type": "string",
+                      "const": "srgb"
                     },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+                    "components": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3
                     },
-                    {
+                    "alpha": {
                       "type": "number",
                       "minimum": 0,
                       "maximum": 1,
                       "description": "소수 넷째 자리까지"
                     }
+                  },
+                  "required": [
+                    "colorSpace",
+                    "components"
                   ],
-                  "items": false,
-                  "minItems": 3,
-                  "maxItems": 3
+                  "additionalProperties": false
                 },
-                "alpha": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1,
-                  "description": "소수 넷째 자리까지"
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "colorSpace",
-                "components"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1927,25 +2561,42 @@
         "style.font-size": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -1955,10 +2606,54 @@
         "style.font-weight": {
           "anyOf": [
             {
-              "type": "integer",
-              "minimum": 100,
-              "maximum": 900,
-              "multipleOf": 100
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 100,
+                  "maximum": 900,
+                  "multipleOf": 100
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.font-family": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "not": {}
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
             },
             {
               "type": "null"
@@ -1968,50 +2663,67 @@
         "style.background-color": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "colorSpace": {
-                  "type": "string",
-                  "const": "srgb"
-                },
-                "components": {
-                  "type": "array",
-                  "prefixItems": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "colorSpace": {
+                      "type": "string",
+                      "const": "srgb"
                     },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+                    "components": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3
                     },
-                    {
+                    "alpha": {
                       "type": "number",
                       "minimum": 0,
                       "maximum": 1,
                       "description": "소수 넷째 자리까지"
                     }
+                  },
+                  "required": [
+                    "colorSpace",
+                    "components"
                   ],
-                  "items": false,
-                  "minItems": 3,
-                  "maxItems": 3
+                  "additionalProperties": false
                 },
-                "alpha": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1,
-                  "description": "소수 넷째 자리까지"
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "colorSpace",
-                "components"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2021,25 +2733,42 @@
         "style.padding-top": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2049,25 +2778,42 @@
         "style.padding-right": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2077,25 +2823,42 @@
         "style.padding-bottom": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2105,25 +2868,42 @@
         "style.padding-left": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2133,25 +2913,42 @@
         "style.border-width": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2177,50 +2974,67 @@
         "style.border-color": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "colorSpace": {
-                  "type": "string",
-                  "const": "srgb"
-                },
-                "components": {
-                  "type": "array",
-                  "prefixItems": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "colorSpace": {
+                      "type": "string",
+                      "const": "srgb"
                     },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+                    "components": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3
                     },
-                    {
+                    "alpha": {
                       "type": "number",
                       "minimum": 0,
                       "maximum": 1,
                       "description": "소수 넷째 자리까지"
                     }
+                  },
+                  "required": [
+                    "colorSpace",
+                    "components"
                   ],
-                  "items": false,
-                  "minItems": 3,
-                  "maxItems": 3
+                  "additionalProperties": false
                 },
-                "alpha": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1,
-                  "description": "소수 넷째 자리까지"
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "colorSpace",
-                "components"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2230,25 +3044,42 @@
         "style.border-radius": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2299,30 +3130,47 @@
             {
               "anyOf": [
                 {
-                  "type": "string",
-                  "enum": [
-                    "fill",
-                    "hug"
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "fill",
+                        "hug"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number",
+                          "description": "소수 넷째 자리까지"
+                        },
+                        "unit": {
+                          "type": "string",
+                          "enum": [
+                            "px",
+                            "rem"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    }
                   ]
                 },
                 {
                   "type": "object",
                   "properties": {
-                    "value": {
-                      "type": "number",
-                      "description": "소수 넷째 자리까지"
-                    },
-                    "unit": {
+                    "token": {
                       "type": "string",
-                      "enum": [
-                        "px",
-                        "rem"
-                      ]
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
                     }
                   },
                   "required": [
-                    "value",
-                    "unit"
+                    "token"
                   ],
                   "additionalProperties": false
                 }
@@ -2338,12 +3186,61 @@
             {
               "anyOf": [
                 {
-                  "type": "string",
-                  "enum": [
-                    "fill",
-                    "hug"
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "fill",
+                        "hug"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number",
+                          "description": "소수 넷째 자리까지"
+                        },
+                        "unit": {
+                          "type": "string",
+                          "enum": [
+                            "px",
+                            "rem"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    }
                   ]
                 },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "size.minWidth": {
+          "anyOf": [
+            {
+              "anyOf": [
                 {
                   "type": "object",
                   "properties": {
@@ -2364,36 +3261,21 @@
                     "unit"
                   ],
                   "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
               ]
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "size.minWidth": {
-          "anyOf": [
-            {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
-                },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
-                }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
             },
             {
               "type": "null"
@@ -2403,25 +3285,42 @@
         "size.maxWidth": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2431,25 +3330,42 @@
         "size.minHeight": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2459,25 +3375,42 @@
         "size.maxHeight": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2595,50 +3528,67 @@
         "style.color": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "colorSpace": {
-                  "type": "string",
-                  "const": "srgb"
-                },
-                "components": {
-                  "type": "array",
-                  "prefixItems": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "colorSpace": {
+                      "type": "string",
+                      "const": "srgb"
                     },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+                    "components": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3
                     },
-                    {
+                    "alpha": {
                       "type": "number",
                       "minimum": 0,
                       "maximum": 1,
                       "description": "소수 넷째 자리까지"
                     }
+                  },
+                  "required": [
+                    "colorSpace",
+                    "components"
                   ],
-                  "items": false,
-                  "minItems": 3,
-                  "maxItems": 3
+                  "additionalProperties": false
                 },
-                "alpha": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1,
-                  "description": "소수 넷째 자리까지"
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "colorSpace",
-                "components"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2648,25 +3598,42 @@
         "style.font-size": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2676,10 +3643,54 @@
         "style.font-weight": {
           "anyOf": [
             {
-              "type": "integer",
-              "minimum": 100,
-              "maximum": 900,
-              "multipleOf": 100
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 100,
+                  "maximum": 900,
+                  "multipleOf": 100
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.font-family": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "not": {}
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
             },
             {
               "type": "null"
@@ -2689,50 +3700,67 @@
         "style.background-color": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "colorSpace": {
-                  "type": "string",
-                  "const": "srgb"
-                },
-                "components": {
-                  "type": "array",
-                  "prefixItems": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "colorSpace": {
+                      "type": "string",
+                      "const": "srgb"
                     },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+                    "components": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3
                     },
-                    {
+                    "alpha": {
                       "type": "number",
                       "minimum": 0,
                       "maximum": 1,
                       "description": "소수 넷째 자리까지"
                     }
+                  },
+                  "required": [
+                    "colorSpace",
+                    "components"
                   ],
-                  "items": false,
-                  "minItems": 3,
-                  "maxItems": 3
+                  "additionalProperties": false
                 },
-                "alpha": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1,
-                  "description": "소수 넷째 자리까지"
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "colorSpace",
-                "components"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2742,25 +3770,42 @@
         "style.padding-top": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2770,25 +3815,42 @@
         "style.padding-right": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2798,25 +3860,42 @@
         "style.padding-bottom": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2826,25 +3905,42 @@
         "style.padding-left": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2854,25 +3950,42 @@
         "style.border-width": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2898,50 +4011,67 @@
         "style.border-color": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "colorSpace": {
-                  "type": "string",
-                  "const": "srgb"
-                },
-                "components": {
-                  "type": "array",
-                  "prefixItems": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "colorSpace": {
+                      "type": "string",
+                      "const": "srgb"
                     },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+                    "components": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3
                     },
-                    {
+                    "alpha": {
                       "type": "number",
                       "minimum": 0,
                       "maximum": 1,
                       "description": "소수 넷째 자리까지"
                     }
+                  },
+                  "required": [
+                    "colorSpace",
+                    "components"
                   ],
-                  "items": false,
-                  "minItems": 3,
-                  "maxItems": 3
+                  "additionalProperties": false
                 },
-                "alpha": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1,
-                  "description": "소수 넷째 자리까지"
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "colorSpace",
-                "components"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -2951,25 +4081,42 @@
         "style.border-radius": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -3032,30 +4179,47 @@
             {
               "anyOf": [
                 {
-                  "type": "string",
-                  "enum": [
-                    "fill",
-                    "hug"
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "fill",
+                        "hug"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number",
+                          "description": "소수 넷째 자리까지"
+                        },
+                        "unit": {
+                          "type": "string",
+                          "enum": [
+                            "px",
+                            "rem"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    }
                   ]
                 },
                 {
                   "type": "object",
                   "properties": {
-                    "value": {
-                      "type": "number",
-                      "description": "소수 넷째 자리까지"
-                    },
-                    "unit": {
+                    "token": {
                       "type": "string",
-                      "enum": [
-                        "px",
-                        "rem"
-                      ]
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
                     }
                   },
                   "required": [
-                    "value",
-                    "unit"
+                    "token"
                   ],
                   "additionalProperties": false
                 }
@@ -3071,12 +4235,61 @@
             {
               "anyOf": [
                 {
-                  "type": "string",
-                  "enum": [
-                    "fill",
-                    "hug"
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "fill",
+                        "hug"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "value": {
+                          "type": "number",
+                          "description": "소수 넷째 자리까지"
+                        },
+                        "unit": {
+                          "type": "string",
+                          "enum": [
+                            "px",
+                            "rem"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "unit"
+                      ],
+                      "additionalProperties": false
+                    }
                   ]
                 },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "size.minWidth": {
+          "anyOf": [
+            {
+              "anyOf": [
                 {
                   "type": "object",
                   "properties": {
@@ -3097,36 +4310,21 @@
                     "unit"
                   ],
                   "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
               ]
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "size.minWidth": {
-          "anyOf": [
-            {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
-                },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
-                }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
             },
             {
               "type": "null"
@@ -3136,25 +4334,42 @@
         "size.maxWidth": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -3164,25 +4379,42 @@
         "size.minHeight": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -3192,25 +4424,42 @@
         "size.maxHeight": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -3340,50 +4589,67 @@
         "style.background-color": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "colorSpace": {
-                  "type": "string",
-                  "const": "srgb"
-                },
-                "components": {
-                  "type": "array",
-                  "prefixItems": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "colorSpace": {
+                      "type": "string",
+                      "const": "srgb"
                     },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+                    "components": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3
                     },
-                    {
+                    "alpha": {
                       "type": "number",
                       "minimum": 0,
                       "maximum": 1,
                       "description": "소수 넷째 자리까지"
                     }
+                  },
+                  "required": [
+                    "colorSpace",
+                    "components"
                   ],
-                  "items": false,
-                  "minItems": 3,
-                  "maxItems": 3
+                  "additionalProperties": false
                 },
-                "alpha": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1,
-                  "description": "소수 넷째 자리까지"
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "colorSpace",
-                "components"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -3393,25 +4659,42 @@
         "style.padding-top": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -3421,25 +4704,42 @@
         "style.padding-right": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -3449,25 +4749,42 @@
         "style.padding-bottom": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -3477,25 +4794,42 @@
         "style.padding-left": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -3505,25 +4839,42 @@
         "style.border-width": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -3549,50 +4900,67 @@
         "style.border-color": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "colorSpace": {
-                  "type": "string",
-                  "const": "srgb"
-                },
-                "components": {
-                  "type": "array",
-                  "prefixItems": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "colorSpace": {
+                      "type": "string",
+                      "const": "srgb"
                     },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1,
-                      "description": "소수 넷째 자리까지"
+                    "components": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1,
+                          "description": "소수 넷째 자리까지"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3
                     },
-                    {
+                    "alpha": {
                       "type": "number",
                       "minimum": 0,
                       "maximum": 1,
                       "description": "소수 넷째 자리까지"
                     }
+                  },
+                  "required": [
+                    "colorSpace",
+                    "components"
                   ],
-                  "items": false,
-                  "minItems": 3,
-                  "maxItems": 3
+                  "additionalProperties": false
                 },
-                "alpha": {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1,
-                  "description": "소수 넷째 자리까지"
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "colorSpace",
-                "components"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -3602,25 +4970,42 @@
         "style.border-radius": {
           "anyOf": [
             {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "number",
-                  "description": "소수 넷째 자리까지"
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number",
+                      "description": "소수 넷째 자리까지"
+                    },
+                    "unit": {
+                      "type": "string",
+                      "enum": [
+                        "px",
+                        "rem"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "unit"
+                  ],
+                  "additionalProperties": false
                 },
-                "unit": {
-                  "type": "string",
-                  "enum": [
-                    "px",
-                    "rem"
-                  ]
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+                    }
+                  },
+                  "required": [
+                    "token"
+                  ],
+                  "additionalProperties": false
                 }
-              },
-              "required": [
-                "value",
-                "unit"
-              ],
-              "additionalProperties": false
+              ]
             },
             {
               "type": "null"
@@ -3664,6 +5049,111 @@
             {
               "type": "null"
             }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "modifierProps": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "contexts": {
+          "anyOf": [
+            {
+              "minItems": 2,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "default": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "tokenProps": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9]*(\\.[a-zA-Z0-9]+)*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tokenType": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "color",
+                "dimension",
+                "fontFamily",
+                "fontWeight",
+                "number"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "value": {
+          "anyOf": [
+            {
+              "description": "tokenType의 원시값 또는 { ref: 토큰 ID }"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "variesBy": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(?:[A-Za-z0-9_-]{6,32}|_[a-z]{1,31})$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "deprecated": {
+          "type": [
+            "boolean",
+            "null"
           ]
         }
       },
