@@ -11,7 +11,7 @@ Slack: `C0CDK58U22F`
 - 이름은 trama다. 서브도메인 `trama.fabrics.*`
 - 설계 원칙 4개(결정적 변환, 하나의 렌더 경로, 단일 소스 반응형, 서버가 최종 검증)와 확정 결정(Q1~Q16)은
   요구사항 명세가 정본이다. 이 파일에는 옮기지 않고, 명세를 구현 수준으로 구체화한 결정만 적는다
-- 편집기 자체의 UI는 common-design(`@junhadex/core`)으로 만든다. 없는 범용 컴포넌트는 로컬에서 먼저
+- 편집기 자체의 UI는 common-design(`@junhadex/core`, 테마 `@junhadex/theme-neutral`)으로 만든다. 없는 범용 컴포넌트는 로컬에서 먼저
   만들고 검증되면 common-design으로 승격한다. Frame iframe 안의 내용은 변환기 출력만 쓰며 common-design과 무관하다
 - 앱이므로 CHANGELOG 생성기는 git-cliff다 (저장소마다 따로 둔다)
 - 명세 Q15 중 서버 항목(TypeScript 단일 공유, Node.js, MCP TypeScript SDK)은 철회한다. 서버는 TypeScript가 아닌
@@ -37,7 +37,7 @@ Slack: `C0CDK58U22F`
 - 런타임과 도구는 `create-next-app` 템플릿 값을 따른다: Next 16.4, React 19.3, TypeScript 5.9, ESLint 9, Tailwind v4, pnpm 10.23
 - 디렉터리는 `src/model`(스키마, 연산 검증·적용), `src/render`(HTML/CSS 변환기), 편집기 UI(`src/app`,
   `src/editor`)로 나눈다. 의존 방향은 편집기 → render → model이고, render와 model은 DOM·React·Next에
-  의존하지 않는다 (제안, 승인 대기)
+  의존하지 않는다
 - 서버가 헤드리스 Chromium에서 불러 쓸 단독 ESM 번들 `render.js`는 Next 빌드와 별도로 tsdown으로
   만든다(common-design과 같은 번들러). 2단계 착수 시 추가한다 (제안, 승인 대기)
 
@@ -86,26 +86,9 @@ Slack: `C0CDK58U22F`
   `docs/architecture/trama-html-conversion.md`에 현행 명세로 둔다. 다른 언어로 만드는 서버와 외부 AI(MCP)가
   같은 계약을 따르기 때문이다. 기계 판독용 계약 파일(JSON Schema, 적합성 fixture, CSS 허용 목록)도 같은 폴더에 둔다
 
-## 진행 중: v0.1 최초 골격
+## 진행 중
 
-- 컨텍스트: web 저장소와 빈 편집기 셸을 만들어 프로젝트 세션으로 전환할 수 있는 상태를 갖춘다
-- 핵심 기능 (모두 완료되면 릴리스):
-  - [ ] web 저장소에 Next.js 앱과 `src/model`, `src/render`, `src/editor` 골격이 있다
-  - [ ] 편집기가 common-design 테마를 적용한 빈 셸로 로컬에서 실행된다
-  - [x] 프로젝트 `CLAUDE.md`와 `.claude/settings.json`이 구성되어 있다
-  - [x] 루트 색인(`PROJECTS.md`, `CLAUDE.md`)과 Slack 채널 매핑이 갱신되어 있다
-- 세부 step:
-  - [x] GitHub 저장소 `fabrics-trama-web` 생성
-  - [x] 전용 Slack 채널 생성 (`C0CDK58U22F`)
-  - [x] `@CodeButler` 초대
-  - [x] `create-next-app`으로 Next.js 프로젝트 생성 (Next 16.4, React 19.3, TypeScript, Tailwind v4, ESLint, App Router, `src/`, pnpm)
-  - [ ] `src/model`, `src/render`, `src/editor` 골격 추가
-  - [ ] GitHub Packages 인증을 설정하고 `@junhadex/core`와 테마 패키지 연결
-  - [ ] `git cliff --init keepachangelog`로 `cliff.toml` 생성, `commit_parsers` 교체
-  - [x] first commit, 원격 저장소로 push
-  - [x] 프로젝트 `CLAUDE.md`(SSOT import, 스택·도메인 규칙, todo 관리 절)와 `.claude/settings.json` 작성
-  - [x] `docs/PROJECTS.md`, 루트 `CLAUDE.md` 색인, `channels.local.json` 갱신
-- 다음 행동: "제안, 승인 대기" 절을 검토해 확정한다
+_(현재 없음. 다음 착수 대상은 v0.2)_
 
 ## 다음 버전 (계획)
 
@@ -127,6 +110,7 @@ Slack: `C0CDK58U22F`
 - 인프라: terraform
 
 ## 완료
+- v0.1 (2026-10-31) 최초 골격: Next.js 앱과 `src/model`·`src/render`·`src/editor` 골격, common-design(`theme-neutral`) 빈 편집기 셸, `cliff.toml`. 프로젝트 `CLAUDE.md`·색인·Slack 매핑 구성
 
 ## 미확정 사항
 
