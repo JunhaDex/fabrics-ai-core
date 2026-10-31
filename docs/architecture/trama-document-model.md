@@ -6,8 +6,9 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 `../references/fabrics-tala-requirements.md`이고, 결정의 근거는 `../trama-web-todo.md`의
 "결정 사항"에 있다. HTML/CSS 변환 규칙은 `trama-html-conversion.md`가 담당한다.
 
-- 상태: v0.2. 노드 5종(frame, section, container, text, image)과 연산 4개(`create`, `set`, `move`, `delete`)를
-  구현했다. 7절 이후(토큰, 컴포넌트, 조건 키, `detach`)는 해당 버전에서 구현하며 그때 확정한다
+- 상태: v0.4. 노드 5종(frame, section, container, text, image), `breakpoint`, 연산 4개(`create`, `set`, `move`,
+  `delete`), `@bp` 조건 키를 구현했다. 7절 이후(토큰, 컴포넌트, `@var`·`@state`, `detach`)는 해당 버전에서
+  구현하며 그때 확정한다
 - 기계 판독용 계약은 web의 테스트가 생성한다(`vitest run -u`). 손으로 고치지 않는다
   - `trama-ops.schema.json`: 트랜잭션과 종류별 props의 JSON Schema. 소수 자릿수 제한처럼 JSON Schema로
     표현되지 않는 조건은 `description`에 적는다
@@ -215,6 +216,15 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
   없다(원본에는 Frame이 없다). 컴포넌트의 반응형 처리 방식은 미확정이다
 - `@var`, `@state`는 컴포넌트 원본 안의 노드에만 쓸 수 있고, `var`의 속성은 그 컴포넌트의 것이어야 한다
 - BP나 `componentProp`을 삭제하면 그것을 참조하는 override 키가 같은 트랜잭션 안에서 함께 삭제된다
+- 노드를 다른 Frame으로 `move`하면 그 노드와 하위 노드의 `@bp` 키가 같은 트랜잭션 안에서 삭제된다. 원래
+  Frame의 BP를 가리키므로 대상이 없어지기 때문이다
+- 조건 키의 값은 기본키의 값 형식을 따른다. `trama-ops.schema.json`의 종류별 props 정의는 기본키만 나열하므로,
+  조건 키는 `기본키@bp:<ID>`를 기본키 정의로 검증한다
+- 검증 순서: 기본키가 그 종류에 없으면 `KEY_NOT_ALLOWED`, `@var:`·`@state:`이면 `CONDITION_NOT_ALLOWED`,
+  `@bp:<ID>` 문법이 아니면 `KEY_INVALID`, 기본키가 위 표에서 `@bp` 불허면 `CONDITION_NOT_ALLOWED`, BP가 같은
+  Frame의 것이 아니면 `CONDITION_TARGET_MISSING`, 값이 맞지 않으면 `VALUE_INVALID`
+- BP의 `minWidth`가 없거나, 같은 Frame의 다른 BP와 같거나, Frame `minWidth` 이하이면 `VALUE_INVALID`다.
+  Frame `minWidth`를 바꿀 때도 같은 조건을 검사한다
 
 ## 7. 토큰과 modifier
 
@@ -297,9 +307,9 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 
 | op | 필드 | 동작 |
 |---|---|---|
-| `create` | `id`, `type`, `parent`, `placement`, `props` | 객체 생성. 노드가 아닌 객체는 `placement`를 생략한다 |
+| `create` | `id`, `type`, `parent`, `placement`, `props` | 객체 생성. 노드는 `placement`가 필요하고, 노드가 아닌 객체(`breakpoint` 등)는 `placement`를 받지 않는다. 어기면 `VALUE_INVALID`(`key: "placement"`) |
 | `set` | `id`, `props` | 속성 설정. 값 `null`은 삭제. 레이아웃, 스타일, 토큰 바인딩, 인스턴스 속성 변경이 모두 여기에 해당 |
-| `move` | `id`, `parent`, `placement` | 부모와 순서 변경 |
+| `move` | `id`, `parent`, `placement` | 부모와 순서 변경. 노드만 옮길 수 있다 |
 | `delete` | `id` | 객체와 하위 노드, 그리고 그것을 참조하는 조건 키를 삭제 |
 | `detach` | `id` | 인스턴스를 일반 노드로 전환. 새 노드 ID 생성 규칙은 v0.6에서 정한다 |
 

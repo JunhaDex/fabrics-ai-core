@@ -90,15 +90,33 @@ Slack: `C0CDK58U22F`
   `docs/architecture/trama-html-conversion.md`에 현행 명세로 둔다. 다른 언어로 만드는 서버와 외부 AI(MCP)가
   같은 계약을 따르기 때문이다. 기계 판독용 계약 파일(JSON Schema, 적합성 fixture, CSS 허용 목록)도 같은 폴더에 둔다
 
-## 진행 중
+## 진행 중: v0.4 반응형과 오버플로
 
-_(현재 없음. 다음 착수 대상은 v0.4)_
+- 컨텍스트: Frame 하나가 하나의 HTML이 되고 BP별 차이를 mobile-first `@media (min-width)`로만 표현하는 원칙을 편집기와 변환기에 구현한다. 넘침은 종류마다 다른 표시로 상시 보여준다
+- 핵심 기능 (모두 완료되면 릴리스):
+  - [x] model: breakpoint 객체, `@bp` override 키 검증, BP 삭제 시 override 정리
+  - [x] render: BP별 `@media (min-width)` 출력, 이미지 소스 BP override를 `<picture>`로 출력
+  - [x] 편집기: Frame별 BP 탭, 현재 BP에서의 override 편집과 해제, 구조·텍스트 편집은 모든 BP 적용 안내
+  - [x] 오버플로 표시: fold 라인과 아래 어둡게, minWidth 점선 영역, 가로 넘침 빨간 아웃라인, clip 배지, BP 숨김 표시
+  - [x] 화면 밖 Frame 가상화
+- 세부 step:
+  - [x] model
+  - [x] render
+  - [x] 편집기 BP
+  - [x] 오버플로 표시
+  - [x] 가상화
+- 구현 결정:
+  - 현재 BP는 Frame 미리보기 폭 이하인 BP 중 가장 큰 것이다. BP 탭은 미리보기 폭을 그 BP의 minWidth(base는 390과 Frame minWidth 중 큰 값)로 바꾼다
+  - HTML 미리보기는 Frame 선택 시 전체 문서, 그 밖의 노드 선택 시 그 노드의 HTML·CSS 조각을 따로 보여주고 각각 복사한다
+  - BP 탭으로 Frame이 넓어지거나 좁아지면, 오른쪽에 있으면서 세로로 겹치는 Frame을 폭 변화만큼 같은 트랜잭션에서 옮긴다. Frame을 보드에서 직접 끌어 옮기는 기능이 없기 때문이다
+  - iframe은 내용 높이까지 늘리고 폭은 미리보기 폭과 minWidth 중 큰 값으로 그린다. minWidth 미만 구간에는 BP가 없어 출력이 같기 때문이다
+  - 가로 넘침·clip 판정은 렌더 결과를 측정한다. 넘침은 미리보기 폭이 minWidth 이상일 때만 표시한다
+  - 가상화는 보드 뷰포트(여백 200px) 밖이거나 줌 25% 미만인 Frame을 SVG foreignObject 스냅샷으로 바꾼다. 외부 이미지는 스냅샷에 나오지 않는다
+- 다음 행동: v0.4 핵심 기능 완료. push 전 주석 점검 후 PR, 릴리스한다
 
 ## 다음 버전 (계획)
 
 1단계(web)
-- v0.4 반응형과 오버플로: Frame별 BP 목록, BP override, `minWidth`, `<picture>`, fold 라인·minWidth 점선·빨간
-  아웃라인 표시, 화면 밖 Frame 가상화
 - v0.5 디자인 토큰: 토큰 표 편집기, modifier, 토큰 순환 검사, 조합 미리보기, 램프 생성기, DTCG 2025.10
   가져오기/내보내기, `[data-*]`·`prefers-color-scheme` CSS 출력
 - v0.6 컴포넌트: 원본·인스턴스·변형·상태, `.c-*` 클래스와 `data-*` 선택자 출력

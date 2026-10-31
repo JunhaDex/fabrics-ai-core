@@ -5,7 +5,7 @@ trama 문서를 HTML/CSS로 바꾸는 규칙의 현행 명세다. 편집기(web)
 속성 키는 `trama-document-model.md`가 정본이다. 요구사항은 `../references/fabrics-tala-requirements.md`의
 "레이아웃 모델과 HTML 변환 규칙" 절이다.
 
-- 상태: v0.2. base 구간만 다룬다. BP override, 토큰, 컴포넌트, 스타일 허용 목록은 해당 버전에서 추가한다
+- 상태: v0.4. base 구간과 BP override를 다룬다. 토큰, 컴포넌트, 스타일 허용 목록은 해당 버전에서 추가한다
 - 검증: web 저장소의 golden 테스트(`src/render/__golden__/`)가 이 문서의 출력 형식을 바이트 단위로 고정한다
 
 ## 1. 변환 단계
@@ -29,6 +29,9 @@ trama 문서를 HTML/CSS로 바꾸는 규칙의 현행 명세다. 편집기(web)
 - `data-id`는 노드 ID, `data-layout`은 레이아웃을 갖는 노드(frame, section, container)의 `layout.mode`다
 - 속성 순서는 `class`, (image의 `src`, `alt`), `data-id`, `data-layout`이다
 - 편집기의 HTML 미리보기(코드 팝업)는 `export`와 같은 HTML에 `style.css` 대신 `<style>`을 인라인한 것이다
+- Frame이 아닌 노드를 선택하고 미리보기를 열면 코드 조각(snippet)을 보여준다. HTML은 그 노드(image가 `<picture>`면
+  `<picture>`째)와 하위 노드의 마크업이고 data 속성이 없다. CSS는 그 노드들의 `.n-<ID>` 규칙과 `@media` 안의 해당
+  규칙, 조각에 `<picture>`가 있으면 `picture` 규칙만 담는다. 리셋 규칙은 페이지 전체의 것이므로 담지 않는다
 
 HTML 문서의 고정 골격:
 
@@ -63,7 +66,10 @@ HTML 문서의 고정 골격:
 - 모든 요소는 `class="n-<노드 ID>"`를 가진다. 이름 변경은 출력에 영향을 주지 않는다
 - 자식 순서는 형제 정렬 규칙(`(order, id)` 사전순)을 따른다
 - 이스케이프: 텍스트는 `&`, `<`, `>`, 속성값은 여기에 `"`를 더한다
-- 들여쓰기는 깊이당 공백 2칸이다. 자식이 없는 요소와 text는 한 줄로 닫는다. `img`는 닫지 않는다
+- 들여쓰기는 깊이당 공백 2칸이다. 자식이 없는 요소와 text는 한 줄로 닫는다. `img`, `source`는 닫지 않는다
+- image에 `src@bp:` override가 하나라도 있으면 `<picture>`로 감싼다. `<source media="(min-width: Npx)" srcset="…">`를
+  override가 있는 BP만 `minWidth` 내림차순으로 두고 마지막에 base `<img>`를 둔다. `picture`와 `source`에는 class와
+  data 속성을 붙이지 않는다
 
 ## 4. CSS 규칙
 
@@ -135,6 +141,17 @@ grid 부모. 기본 sizing은 두 축 모두 `fill`(셀을 채움)이다.
 - `position: absolute`, `left: {x}px`, `top: {y}px`, `w`·`h`가 있으면 `width: {w}px`, `height: {h}px`.
   `x`, `y`가 없으면 0이다
 - `size.*`, `grid.*`는 출력하지 않는다
+
+### BP override (`@media`)
+- 노드의 상태는 base와 BP마다 하나씩 있다. BP 상태는 base 값에 `minWidth`가 그 BP 이하인 BP의 override를 오름차순으로
+  덮어쓴 값이다. 각 상태에서 위 규칙으로 선언 집합을 계산한다. 부모의 상태도 같은 BP의 것을 쓰므로, 부모의 레이아웃
+  모드가 BP에서 바뀌면 자식의 sizing 선언도 그 BP에서 다시 계산된다
+- base 규칙 뒤에 BP마다 `@media (min-width: {minWidth}px) { … }` 블록 하나를 `minWidth` 오름차순으로 낸다. 블록 안에는
+  직전 상태와 달라진 선언만 트리 순서의 `.n-<ID>` 규칙으로 낸다. 달라진 선언이 없는 노드와 BP는 내지 않는다
+- 직전 상태에 있었고 이번 상태에 없는 선언은 `속성: revert`로 낸다(예: base `display: none`을 BP에서 해제)
+- 블록 안 규칙은 공백 2칸, 선언은 4칸 들여쓴다. 규칙 사이와 블록 사이는 빈 줄 하나다
+- 문서에 `src@bp:` 키가 하나라도 있으면 리셋 규칙 뒤에 `picture { display: contents; }`를 낸다. `<picture>`가 레이아웃
+  상자를 만들지 않아 `<img>`가 부모의 flex·grid 자식으로 배치된다
 
 ### 그 밖의 속성
 - `hidden`이 `true`이면 `display`를 `display: none`으로 바꾼다. 자식은 그대로 출력한다

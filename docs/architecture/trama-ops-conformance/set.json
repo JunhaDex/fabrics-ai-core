@@ -307,7 +307,7 @@
       }
     },
     {
-      "name": "조건 키는 아직 허용하지 않는다",
+      "name": "없는 BP를 가리키는 조건 키",
       "doc": {
         "schemaVersion": 1,
         "objects": {
@@ -359,7 +359,7 @@
       "expect": {
         "ok": false,
         "error": {
-          "code": "KEY_NOT_ALLOWED",
+          "code": "CONDITION_TARGET_MISSING",
           "opIndex": 0,
           "id": "box001",
           "key": "layout.gap@bp:bp0001"

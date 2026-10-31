@@ -36,7 +36,8 @@
                       "section",
                       "container",
                       "text",
-                      "image"
+                      "image",
+                      "breakpoint"
                     ]
                   },
                   "parent": {
@@ -99,8 +100,7 @@
                   "op",
                   "id",
                   "type",
-                  "parent",
-                  "placement"
+                  "parent"
                 ],
                 "additionalProperties": false
               },
@@ -3636,6 +3636,30 @@
                 "contain",
                 "fill"
               ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "breakpointProps": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "minWidth": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
             },
             {
               "type": "null"
