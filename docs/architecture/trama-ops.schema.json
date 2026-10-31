@@ -428,6 +428,153 @@
             "boolean",
             "null"
           ]
+        },
+        "style.color": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "colorSpace": {
+                  "type": "string",
+                  "const": "srgb"
+                },
+                "components": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "alpha": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "소수 넷째 자리까지"
+                }
+              },
+              "required": [
+                "colorSpace",
+                "components"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.font-size": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.font-weight": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 900,
+              "multipleOf": 100
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.background-color": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "colorSpace": {
+                  "type": "string",
+                  "const": "srgb"
+                },
+                "components": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "alpha": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "소수 넷째 자리까지"
+                }
+              },
+              "required": [
+                "colorSpace",
+                "components"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "additionalProperties": false
@@ -869,6 +1016,390 @@
               "type": "number",
               "minimum": 0,
               "description": "소수 넷째 자리까지"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.color": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "colorSpace": {
+                  "type": "string",
+                  "const": "srgb"
+                },
+                "components": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "alpha": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "소수 넷째 자리까지"
+                }
+              },
+              "required": [
+                "colorSpace",
+                "components"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.font-size": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.font-weight": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 900,
+              "multipleOf": 100
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.background-color": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "colorSpace": {
+                  "type": "string",
+                  "const": "srgb"
+                },
+                "components": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "alpha": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "소수 넷째 자리까지"
+                }
+              },
+              "required": [
+                "colorSpace",
+                "components"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.padding-top": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.padding-right": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.padding-bottom": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.padding-left": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.border-width": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.border-style": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "none",
+                "solid",
+                "dashed",
+                "dotted"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.border-color": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "colorSpace": {
+                  "type": "string",
+                  "const": "srgb"
+                },
+                "components": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "alpha": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "소수 넷째 자리까지"
+                }
+              },
+              "required": [
+                "colorSpace",
+                "components"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.border-radius": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
             },
             {
               "type": "null"
@@ -1340,6 +1871,390 @@
             }
           ]
         },
+        "style.color": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "colorSpace": {
+                  "type": "string",
+                  "const": "srgb"
+                },
+                "components": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "alpha": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "소수 넷째 자리까지"
+                }
+              },
+              "required": [
+                "colorSpace",
+                "components"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.font-size": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.font-weight": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 900,
+              "multipleOf": 100
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.background-color": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "colorSpace": {
+                  "type": "string",
+                  "const": "srgb"
+                },
+                "components": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "alpha": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "소수 넷째 자리까지"
+                }
+              },
+              "required": [
+                "colorSpace",
+                "components"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.padding-top": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.padding-right": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.padding-bottom": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.padding-left": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.border-width": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.border-style": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "none",
+                "solid",
+                "dashed",
+                "dotted"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.border-color": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "colorSpace": {
+                  "type": "string",
+                  "const": "srgb"
+                },
+                "components": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "alpha": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "소수 넷째 자리까지"
+                }
+              },
+              "required": [
+                "colorSpace",
+                "components"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.border-radius": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "tag": {
           "anyOf": [
             {
@@ -1671,6 +2586,390 @@
               "type": "number",
               "minimum": 0,
               "description": "소수 넷째 자리까지"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.color": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "colorSpace": {
+                  "type": "string",
+                  "const": "srgb"
+                },
+                "components": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "alpha": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "소수 넷째 자리까지"
+                }
+              },
+              "required": [
+                "colorSpace",
+                "components"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.font-size": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.font-weight": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 900,
+              "multipleOf": 100
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.background-color": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "colorSpace": {
+                  "type": "string",
+                  "const": "srgb"
+                },
+                "components": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "alpha": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "소수 넷째 자리까지"
+                }
+              },
+              "required": [
+                "colorSpace",
+                "components"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.padding-top": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.padding-right": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.padding-bottom": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.padding-left": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.border-width": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.border-style": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "none",
+                "solid",
+                "dashed",
+                "dotted"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.border-color": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "colorSpace": {
+                  "type": "string",
+                  "const": "srgb"
+                },
+                "components": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "alpha": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "소수 넷째 자리까지"
+                }
+              },
+              "required": [
+                "colorSpace",
+                "components"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.border-radius": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
             },
             {
               "type": "null"
@@ -2036,6 +3335,296 @@
           "type": [
             "string",
             "null"
+          ]
+        },
+        "style.background-color": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "colorSpace": {
+                  "type": "string",
+                  "const": "srgb"
+                },
+                "components": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "alpha": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "소수 넷째 자리까지"
+                }
+              },
+              "required": [
+                "colorSpace",
+                "components"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.padding-top": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.padding-right": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.padding-bottom": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.padding-left": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.border-width": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.border-style": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "none",
+                "solid",
+                "dashed",
+                "dotted"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.border-color": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "colorSpace": {
+                  "type": "string",
+                  "const": "srgb"
+                },
+                "components": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "소수 넷째 자리까지"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "alpha": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "소수 넷째 자리까지"
+                }
+              },
+              "required": [
+                "colorSpace",
+                "components"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "style.border-radius": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number",
+                  "description": "소수 넷째 자리까지"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "px",
+                    "rem"
+                  ]
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "style.object-fit": {

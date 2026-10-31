@@ -79,7 +79,7 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 | 형식 | 예 | 비고 |
 |---|---|---|
 | Dimension | `{ "value": 16, "unit": "px" }` | unit: `px`, `rem`, `%`(스타일 원시값만) |
-| Color | `{ "colorSpace": "oklch", "components": [0.62, 0.19, 259], "alpha": 1 }` | DTCG 2025.10 color 객체 |
+| Color | `{ "colorSpace": "srgb", "components": [0.2, 0.4, 1], "alpha": 0.5 }` | DTCG 2025.10 color 객체. v0.3은 `srgb`만 허용하며 성분과 `alpha`는 0~1, 소수 넷째 자리까지. `alpha`가 없으면 1 |
 | 토큰 바인딩 | `{ "token": "tk7" }` | 토큰 ID로 저장한다. 이름을 바꿔도 깨지지 않는다 |
 | 토큰 참조 | `{ "ref": "tk3" }` | 토큰 값이 다른 토큰을 가리킬 때만 쓴다 |
 | 자산 | `{ "asset": "as1" }` | 이미지 원본. 저장 방식은 미확정 |
@@ -145,6 +145,21 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
   우회하는 속성(`display`, `position`, `flex-*`, `grid-*`, `width`, `height`, `top`, `left`, `float`,
   `margin*` 등)은 목록에 넣지 않는다. 값은 Baseline Widely available 허용 목록 안에 있어야 한다
 - 값은 속성별 형식(Dimension, Color, 키워드) 또는 토큰 바인딩이다
+- v0.3에서 허용하는 스타일 키는 아래와 같다. web-features 기반 허용 목록은 이후 버전에서 이 목록을 대체한다
+
+| 키 | 값 | 노드 |
+|---|---|---|
+| `style.background-color` | Color | 전체 |
+| `style.color` | Color | image 제외 |
+| `style.font-size` | Dimension | image 제외 |
+| `style.font-weight` | 100~900의 100 단위 정수 | image 제외 |
+| `style.padding-top`, `-right`, `-bottom`, `-left` | Dimension | frame 제외 |
+| `style.border-width`, `style.border-radius` | Dimension | frame 제외 |
+| `style.border-style` | `none`, `solid`, `dashed`, `dotted` | frame 제외 |
+| `style.border-color` | Color | frame 제외 |
+| `style.object-fit` | `cover`, `contain`, `fill` | image |
+
+- frame에 padding이 없는 것은 `safeArea`가 `body`의 padding을 쓰기 때문이다
 
 ### 종류별 고유 속성
 

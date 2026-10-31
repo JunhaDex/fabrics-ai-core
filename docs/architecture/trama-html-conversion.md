@@ -28,6 +28,7 @@ trama 문서를 HTML/CSS로 바꾸는 규칙의 현행 명세다. 편집기(web)
 
 - `data-id`는 노드 ID, `data-layout`은 레이아웃을 갖는 노드(frame, section, container)의 `layout.mode`다
 - 속성 순서는 `class`, (image의 `src`, `alt`), `data-id`, `data-layout`이다
+- 편집기의 HTML 미리보기(코드 팝업)는 `export`와 같은 HTML에 `style.css` 대신 `<style>`을 인라인한 것이다
 
 HTML 문서의 고정 골격:
 
@@ -79,7 +80,9 @@ HTML 문서의 고정 골격:
 
 - 이후 노드마다 `.n-<ID>` 규칙 하나를 트리 전위 순회 순서로 낸다. 선언이 없는 노드는 규칙을 내지 않는다
 - 규칙 안의 선언은 속성 이름의 코드 단위 사전순으로 정렬한다
-- shorthand를 쓰지 않는다. 사전순 정렬에서 shorthand와 longhand의 적용 순서가 뒤집히는 일을 막기 위해서다
+- shorthand를 쓰지 않는다. 사전순 정렬에서 shorthand와 longhand의 적용 순서가 뒤집히는 일을 막기 위해서다.
+  예외로 `border-width`, `border-style`, `border-color`, `border-radius`는 shorthand지만, 같은 그룹의 longhand를
+  내는 키가 없으므로 그대로 쓴다
 - 규칙 사이는 빈 줄 하나, 선언은 공백 2칸 들여쓰기에 `속성: 값;`이다
 - 숫자는 JavaScript `String(n)` 표기이며 `-0`은 `0`으로 낸다. 길이는 `{값}{단위}`이고 0에도 단위를 붙인다
 - 속성이 없는 것과 기본값은 같은 출력을 낸다. CSS 초기값과 같은 선언은 내지 않는다
@@ -135,4 +138,8 @@ grid 부모. 기본 sizing은 두 축 모두 `fill`(셀을 채움)이다.
 
 ### 그 밖의 속성
 - `hidden`이 `true`이면 `display`를 `display: none`으로 바꾼다. 자식은 그대로 출력한다
-- `style.<속성>` 키는 `<속성>: 값`으로 낸다. v0.2에서는 image의 `style.object-fit`만 있다
+- `style.<속성>` 키는 `<속성>: 값`으로 낸다. 값 표기는 아래와 같다
+  - Dimension: `{값}{단위}` (예: `1.5rem`, `16px`)
+  - Color: `alpha`가 1이면 소문자 `#rrggbb`, 아니면 `rgb(R G B / A)`. 성분은 `round(c × 255)`다
+  - 숫자: 앞의 숫자 규칙과 같다 (예: `font-weight: 700`)
+  - 키워드: 그대로

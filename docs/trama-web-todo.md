@@ -34,6 +34,7 @@ Slack: `C0CDK58U22F`
 - Next.js(App Router) 단일 패키지로 만든다. monorepo 도구(pnpm workspace, Turborepo)는 쓰지 않는다.
   패키지 매니저는 pnpm, Node `>=24`다
 - 편집기 화면은 클라이언트 컴포넌트로 만든다. 보드, iframe, 오버레이가 모두 브라우저 상태에 의존하기 때문이다
+- 편집기 상태 관리는 zustand다. 문서는 `DocSource`가 소유하고 스토어는 그 구독 결과를 반영한다. 선택·뷰포트 같은 UI 상태는 스토어가 소유한다
 - 런타임과 도구는 `create-next-app` 템플릿 값을 따른다: Next 16.4, React 19.3, TypeScript 5.9, ESLint 9, Tailwind v4, pnpm 10.23
 - 디렉터리는 `src/model`(스키마, 연산 검증·적용), `src/render`(HTML/CSS 변환기), 편집기 UI(`src/app`,
   `src/editor`)로 나눈다. 의존 방향은 편집기 → render → model이고, render와 model은 DOM·React·Next에
@@ -89,15 +90,29 @@ Slack: `C0CDK58U22F`
   `docs/architecture/trama-html-conversion.md`에 현행 명세로 둔다. 다른 언어로 만드는 서버와 외부 AI(MCP)가
   같은 계약을 따르기 때문이다. 기계 판독용 계약 파일(JSON Schema, 적합성 fixture, CSS 허용 목록)도 같은 폴더에 둔다
 
-## 진행 중
+## 진행 중: v0.3 작업 영역
 
-_(현재 없음. 다음 착수 대상은 v0.3)_
+- 컨텍스트: v0.2의 model·render 위에 첫 편집기 UI를 올려, 사람이 문서를 만들고 고치고 내보낼 수 있게 한다
+- 핵심 기능 (모두 완료되면 릴리스):
+  - [x] `LocalSource`: 모든 편집을 `apply_ops`로 적용, actor별 Undo·Redo, IndexedDB 저장, 문서 JSON 내보내기·가져오기
+  - [x] 보드: 팬/줌, Frame별 `srcdoc` iframe(`sandbox="allow-same-origin"`, `pointer-events: none`)
+  - [x] 오버레이: 역변환 좌표로 선택, 선택 테두리
+  - [x] 레이어 트리와 속성 패널로 노드 추가·삭제·이동·속성 편집
+  - [x] 드래그앤드롭: flow 컨테이너는 삽입 인덱스, absolute 노드는 좌표 이동
+  - [x] 기본 스타일 키: 배경색, 글자색·크기·굵기, padding, border, radius. 값은 Dimension·Color(srgb). 허용 목록 생성(web-features)은 이후 버전에서 대체한다
+  - [x] HTML 미리보기: 내보내기 HTML(CSS 인라인)을 팝업에서 코드로 보여주고 복사한다. 코드 강조는 shiki. 폴더에 파일을 쓰는 방식은 브라우저 보안 제약으로 쓰지 않는다
+- 세부 step:
+  - [x] model: 적용 결과로 `(ID, 키)`별 변경 목록을 돌려주고, 변경 목록으로 되돌리는 함수 추가
+  - [x] `LocalSource`와 zustand 스토어
+  - [x] 보드·iframe·오버레이
+  - [x] 레이어 트리·속성 패널
+  - [x] 드래그앤드롭
+  - [x] IndexedDB 저장, JSON 저장·열기, HTML 미리보기
+- 다음 행동: v0.3 핵심 기능 완료. push 전 주석 점검 후 PR, 릴리스한다
 
 ## 다음 버전 (계획)
 
 1단계(web)
-- v0.3 작업 영역: 보드 팬/줌, Frame별 `srcdoc` iframe, 오버레이 선택(역변환 좌표), 레이어 트리, 속성 패널,
-  드래그앤드롭 삽입 인덱스, `LocalSource`·IndexedDB·Undo, HTML/CSS 내보내기
 - v0.4 반응형과 오버플로: Frame별 BP 목록, BP override, `minWidth`, `<picture>`, fold 라인·minWidth 점선·빨간
   아웃라인 표시, 화면 밖 Frame 가상화
 - v0.5 디자인 토큰: 토큰 표 편집기, modifier, 토큰 순환 검사, 조합 미리보기, 램프 생성기, DTCG 2025.10
