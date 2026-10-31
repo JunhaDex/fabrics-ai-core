@@ -12,6 +12,7 @@
 | app-bridge | 기획 | (미정) `fabrics-pocket-bridge` | `projects/app-bridge/` | pocket 브릿지 계약의 TypeScript 타입과 런타임 헬퍼. 웹앱이 의존하는 npm 패키지 | — |
 | stylist-web | 구축중 | https://github.com/JunhaDex/fabrics-stylist-web | `projects/stylist-web/` | 옷장 등록과 TPO 코디 추천 웹앱. pocket에 처음 탑재되는 웹앱 (Next.js Multi-Zones, Turborepo). 저장소 이름은 가칭 | — |
 | trama-web | 구축중 | https://github.com/JunhaDex/fabrics-trama-web | `projects/trama-web/` | 자유 캔버스 디자인을 결정적으로 HTML/CSS로 변환하고 사람과 AI가 함께 편집하는 UI 디자인 도구 trama의 편집기 (Next.js) | `architecture/trama-document-model.md` |
+| auth-api | 구축중 | https://github.com/JunhaDex/fabrics-auth-api | `projects/auth-api/` | 외부 제공자(Google, Apple, Kakao, Naver, GitHub) 위임과 자체 이메일 로그인을 지원하는 fabrics 공통 회원·인증 서버 (Kotlin, Spring Boot, PostgreSQL) | — |
 
 ## 상태 값 정의
 - **기획**: 루트 세션에서 구조/요구사항을 논의 중. 아직 별도 저장소 없음.
