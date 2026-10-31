@@ -1,0 +1,573 @@
+{
+  "cases": [
+    {
+      "name": "같은 트랜잭션에서 만든 노드를 바로 참조한다",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {}
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "create",
+            "id": "frame1",
+            "type": "frame",
+            "parent": null,
+            "placement": "last",
+            "props": {
+              "name": "Home"
+            }
+          },
+          {
+            "op": "create",
+            "id": "sect01",
+            "type": "section",
+            "parent": "frame1",
+            "placement": "last"
+          },
+          {
+            "op": "create",
+            "id": "box001",
+            "type": "container",
+            "parent": "sect01",
+            "placement": "last",
+            "props": {
+              "layout.mode": "flex-row"
+            }
+          },
+          {
+            "op": "create",
+            "id": "txt001",
+            "type": "text",
+            "parent": "box001",
+            "placement": "first",
+            "props": {
+              "content": "a"
+            }
+          },
+          {
+            "op": "create",
+            "id": "txt002",
+            "type": "text",
+            "parent": "box001",
+            "placement": "last",
+            "props": {
+              "content": "b"
+            }
+          },
+          {
+            "op": "create",
+            "id": "txt003",
+            "type": "text",
+            "parent": "box001",
+            "placement": {
+              "after": "txt001"
+            },
+            "props": {
+              "content": "c"
+            }
+          },
+          {
+            "op": "create",
+            "id": "txt004",
+            "type": "text",
+            "parent": "box001",
+            "placement": {
+              "before": "txt001"
+            },
+            "props": {
+              "content": "d"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": true,
+        "doc": {
+          "schemaVersion": 1,
+          "objects": {
+            "frame1": {
+              "type": "frame",
+              "parent": null,
+              "order": "a0",
+              "name": "Home"
+            },
+            "sect01": {
+              "type": "section",
+              "parent": "frame1",
+              "order": "a0"
+            },
+            "box001": {
+              "type": "container",
+              "parent": "sect01",
+              "order": "a0",
+              "layout.mode": "flex-row"
+            },
+            "txt001": {
+              "type": "text",
+              "parent": "box001",
+              "order": "a0",
+              "content": "a"
+            },
+            "txt002": {
+              "type": "text",
+              "parent": "box001",
+              "order": "a1",
+              "content": "b"
+            },
+            "txt003": {
+              "type": "text",
+              "parent": "box001",
+              "order": "a0V",
+              "content": "c"
+            },
+            "txt004": {
+              "type": "text",
+              "parent": "box001",
+              "order": "Zz",
+              "content": "d"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "props의 null은 저장하지 않는다",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "create",
+            "id": "box003",
+            "type": "container",
+            "parent": "sect01",
+            "placement": "last",
+            "props": {
+              "name": null
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": true,
+        "doc": {
+          "schemaVersion": 1,
+          "objects": {
+            "frame1": {
+              "type": "frame",
+              "parent": null,
+              "order": "a0",
+              "name": "Home"
+            },
+            "sect01": {
+              "type": "section",
+              "parent": "frame1",
+              "order": "a0"
+            },
+            "box001": {
+              "type": "container",
+              "parent": "sect01",
+              "order": "a0"
+            },
+            "box002": {
+              "type": "container",
+              "parent": "box001",
+              "order": "a0"
+            },
+            "txt001": {
+              "type": "text",
+              "parent": "sect01",
+              "order": "a1",
+              "content": "hello"
+            },
+            "box003": {
+              "type": "container",
+              "parent": "sect01",
+              "order": "a2"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "중복 ID",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "create",
+            "id": "box001",
+            "type": "container",
+            "parent": "sect01",
+            "placement": "last"
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "ID_CONFLICT",
+          "opIndex": 0,
+          "id": "box001",
+          "key": null
+        }
+      }
+    },
+    {
+      "name": "예약 ID",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "create",
+            "id": "_box01",
+            "type": "container",
+            "parent": "sect01",
+            "placement": "last"
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "ID_CONFLICT",
+          "opIndex": 0,
+          "id": "_box01",
+          "key": null
+        }
+      }
+    },
+    {
+      "name": "section은 frame 아래에만",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "create",
+            "id": "sect02",
+            "type": "section",
+            "parent": "box001",
+            "placement": "last"
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "INVALID_PARENT",
+          "opIndex": 0,
+          "id": "sect02",
+          "key": null
+        }
+      }
+    },
+    {
+      "name": "보드에는 frame만",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "create",
+            "id": "txt002",
+            "type": "text",
+            "parent": null,
+            "placement": "last"
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "INVALID_PARENT",
+          "opIndex": 0,
+          "id": "txt002",
+          "key": null
+        }
+      }
+    },
+    {
+      "name": "없는 부모",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "create",
+            "id": "txt002",
+            "type": "text",
+            "parent": "nobody",
+            "placement": "last"
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "UNKNOWN_OBJECT",
+          "opIndex": 0,
+          "id": "nobody",
+          "key": null
+        }
+      }
+    },
+    {
+      "name": "종류에 없는 키",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "create",
+            "id": "box003",
+            "type": "container",
+            "parent": "sect01",
+            "placement": "last",
+            "props": {
+              "content": "x"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "KEY_NOT_ALLOWED",
+          "opIndex": 0,
+          "id": "box003",
+          "key": "content"
+        }
+      }
+    }
+  ]
+}

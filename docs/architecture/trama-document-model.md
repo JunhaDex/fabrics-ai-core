@@ -4,11 +4,15 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 오류 코드의 현행 명세다. web(편집기, TypeScript)과 server(언어 미정)의 두 구현,
 그리고 MCP로 접속하는 AI가 이 문서를 그대로 따른다. 요구사항의 정본은
 `../references/fabrics-tala-requirements.md`이고, 결정의 근거는 `../trama-web-todo.md`의
-"결정 사항"에 있다. HTML/CSS 변환 규칙은 `trama-html-conversion.md`(작성 예정)가 담당한다.
+"결정 사항"에 있다. HTML/CSS 변환 규칙은 `trama-html-conversion.md`가 담당한다.
 
-- 상태: 초안. 승인 전이며 v0.2 구현 중에 확정한다
-- 기계 판독용 계약: `trama-ops.schema.json`(web의 zod 스키마에서 생성),
-  `trama-ops-conformance/`(두 구현이 모두 통과해야 하는 사례 묶음). v0.2에서 만든다
+- 상태: v0.2. 노드 5종(frame, section, container, text, image)과 연산 4개(`create`, `set`, `move`, `delete`)를
+  구현했다. 7절 이후(토큰, 컴포넌트, 조건 키, `detach`)는 해당 버전에서 구현하며 그때 확정한다
+- 기계 판독용 계약은 web의 테스트가 생성한다(`vitest run -u`). 손으로 고치지 않는다
+  - `trama-ops.schema.json`: 트랜잭션과 종류별 props의 JSON Schema. 소수 자릿수 제한처럼 JSON Schema로
+    표현되지 않는 조건은 `description`에 적는다
+  - `trama-ops-conformance/*.json`: `{ name, doc, tx, expect }` 사례 묶음. `expect`는 `{ ok: true, doc }` 또는
+    `{ ok: false, error: { code, opIndex, id, key } }`이며, 결과 문서의 `order` 키까지 일치해야 한다
 
 ## 1. 문서 구조
 
@@ -67,7 +71,7 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 - base62 문자열 키다. 두 키 사이에 항상 새 키를 만들 수 있어, 동시에 삽입해도 다른 형제의 키가 바뀌지 않는다
 - 알고리즘은 David Greenspan의 "Implementing Fractional Indexing"을 따른다(npm
   `fractional-indexing`과 같은 결과). 서버 구현도 같은 결과를 내야 하며 적합성 fixture로 검증한다
-- 연산은 `order`를 직접 받지 않고 위치 지정(`first`, `last`, `{ before: id }`, `{ after: id }`)을
+- 연산은 `order`를 직접 받지 않고 `placement` 필드로 위치 지정(`first`, `last`, `{ before: id }`, `{ after: id }`)을
   받는다. 서버가 키를 계산한다. AI는 fractional index를 다루지 않는다
 
 ## 4. 값 형식
@@ -107,7 +111,7 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 
 | 키 | 값 | 기본값 |
 |---|---|---|
-| `layout.mode` | `flex-row`, `flex-column`, `grid`, `absolute` | `flex-column` |
+| `layout.mode` | `flex-row`, `flex-column`, `grid` | `flex-column` |
 | `layout.gap`, `layout.rowGap` | Dimension, 토큰 바인딩 | 0 |
 | `layout.justify` | `start`, `center`, `end`, `space-between`, `space-around`, `space-evenly` | `start` |
 | `layout.align` | `start`, `center`, `end`, `stretch`, `baseline` | `stretch` |
@@ -122,13 +126,17 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 | `size.width`, `size.height` | `fill`, `hug`, Dimension, 토큰 바인딩 | 항상 |
 | `size.minWidth`, `size.maxWidth`, `size.minHeight`, `size.maxHeight` | Dimension, 토큰 바인딩 | 항상 |
 | `grid.colStart`, `grid.colSpan`, `grid.rowStart`, `grid.rowSpan` | 1 이상 정수 | 부모가 `grid` |
-| `abs.x`, `abs.y` | number(px) | 부모가 `absolute` |
-| `abs.h` | `left`, `right`, `left-right`, `center`, `scale` | 부모가 `absolute`. 기본 `left` |
-| `abs.v` | `top`, `bottom`, `top-bottom`, `center`, `scale` | 부모가 `absolute`. 기본 `top` |
+| `position` | `static`, `absolute` | 항상. 기본 `static` |
+| `x`, `y`, `w`, `h` | number(px, 소수 넷째 자리까지). `w`, `h`는 0 이상 | `position`이 `absolute` |
 
 - 유효 조건을 벗어난 키는 지우지 않고 보존하며 변환기가 무시한다. 부모의 레이아웃 모드를
   바꿨다가 되돌려도 자식의 배치 정보가 남는다
 - 자식 sizing의 기본값은 부모 방향의 주축이 `hug`, 교차축이 `fill`이다(정확한 CSS 대응은 변환 규칙 문서)
+- 편집기는 모든 노드를 렌더 결과의 rect(x, y, w, h)로 다룬다. rect는 측정값이며 문서에 저장하지 않는다
+- `position`을 `absolute`로 바꾸면 편집기가 그 순간의 rect를 부모 좌상단 기준으로 `x`, `y`, `w`, `h`에 저장한다.
+  absolute 노드는 부모의 흐름에서 빠지며, 같은 부모 안에 static 자식과 섞일 수 있다. 이때 `size.*`, `grid.*`는 무시한다
+- `static`으로 되돌려도 `x`, `y`, `w`, `h`는 지우지 않는다. 다시 `absolute`로 바꾸면 그 시점의 rect로 덮어쓴다
+- 제약(우측·중앙 고정, 늘이기)은 두지 않는다. absolute 노드는 부모 좌상단 기준 고정 배치만 한다
 
 ### 스타일
 
@@ -179,15 +187,15 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 
 | 기본키 | `@bp` | `@var` | `@state` |
 |---|---|---|---|
-| `layout.*`, `size.*`, `grid.*`, `abs.*` | 허용 | 허용 | 불허 |
+| `layout.*`, `size.*`, `grid.*`, `x`, `y`, `w`, `h` | 허용 | 허용 | 불허 |
 | `style.*` | 허용 | 허용 | 허용 |
 | `hidden` | 허용 | 허용 | 불허 |
 | `src` (image) | 허용 (`<picture>`로 출력) | 불허 | 불허 |
+| `position` | 불허 | 불허 | 불허 |
 | `content`, `tag`, `name`, `parent`, `order` 등 구조·텍스트 | 불허 | 불허 | 불허 |
 
-- `layout.mode`의 BP override는 `flex-row`, `flex-column`, `grid` 사이의 전환만 허용한다.
-  `absolute`로 또는 `absolute`에서 바꾸는 override는 거부한다(`CONDITION_NOT_ALLOWED`).
-  자식 배치 정보(좌표 대 순서)가 BP마다 달라지는 것을 막기 위해서다
+- `position`에는 조건을 붙일 수 없다(`CONDITION_NOT_ALLOWED`). 노드가 흐름 배치인지 절대 배치인지가
+  BP마다 달라지는 것을 막기 위해서다
 - `@bp`의 BP는 그 노드가 속한 Frame의 것이어야 한다. 컴포넌트 원본 안의 노드는 `@bp`를 쓸 수
   없다(원본에는 Frame이 없다). 컴포넌트의 반응형 처리 방식은 미확정이다
 - `@var`, `@state`는 컴포넌트 원본 안의 노드에만 쓸 수 있고, `var`의 속성은 그 컴포넌트의 것이어야 한다
@@ -257,10 +265,10 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
   "txId": "tx_9f2…",
   "actor": "user:dex",
   "ops": [
-    { "op": "create", "id": "c1", "type": "container", "parent": "s1", "position": "last",
+    { "op": "create", "id": "c1", "type": "container", "parent": "s1", "placement": "last",
       "props": { "layout.mode": "flex-row", "layout.gap": { "token": "tk2" } } },
     { "op": "set", "id": "t1", "props": { "content": "요금 안내", "style.font-size@bp:bp2": { "token": "tk9" } } },
-    { "op": "move", "id": "t1", "parent": "c1", "position": "first" }
+    { "op": "move", "id": "t1", "parent": "c1", "placement": "first" }
   ]
 }
 ```
@@ -274,13 +282,14 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 
 | op | 필드 | 동작 |
 |---|---|---|
-| `create` | `id`, `type`, `parent`, `position`, `props` | 객체 생성. 노드가 아닌 객체는 `position`을 생략한다 |
+| `create` | `id`, `type`, `parent`, `placement`, `props` | 객체 생성. 노드가 아닌 객체는 `placement`를 생략한다 |
 | `set` | `id`, `props` | 속성 설정. 값 `null`은 삭제. 레이아웃, 스타일, 토큰 바인딩, 인스턴스 속성 변경이 모두 여기에 해당 |
-| `move` | `id`, `parent`, `position` | 부모와 순서 변경 |
+| `move` | `id`, `parent`, `placement` | 부모와 순서 변경 |
 | `delete` | `id` | 객체와 하위 노드, 그리고 그것을 참조하는 조건 키를 삭제 |
 | `detach` | `id` | 인스턴스를 일반 노드로 전환. 새 노드 ID 생성 규칙은 v0.6에서 정한다 |
 
-`position`은 `"first"`, `"last"`, `{ "before": ID }`, `{ "after": ID }` 중 하나다.
+`placement`는 `"first"`, `"last"`, `{ "before": ID }`, `{ "after": ID }` 중 하나다. `before`·`after`의 기준
+노드는 대상 부모의 자식이어야 하며, 없으면 `UNKNOWN_OBJECT`, 다른 부모의 자식이거나 자기 자신이면 `VALUE_INVALID`다.
 
 ### 응답
 
@@ -290,6 +299,8 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 ```
 
 - `message`는 사람과 AI가 읽는 설명이며 계약에 포함하지 않는다. 판단은 `code`로 한다
+- `id`는 오류가 난 객체다. `UNKNOWN_OBJECT`에서는 찾지 못한 ID다
+- `SCHEMA_INVALID`의 `opIndex`는 위반 위치가 특정 연산 안이면 그 인덱스, 아니면 `null`이다
 
 ### Undo
 
@@ -315,7 +326,7 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 | `KEY_NOT_ALLOWED` | 그 객체 종류에 없는 키 |
 | `CONDITION_NOT_ALLOWED` | 6절의 조건별 허용 키 위반 |
 | `CONDITION_TARGET_MISSING` | 조건이 가리키는 BP·속성·옵션이 없거나 범위 밖 |
-| `VALUE_INVALID` | 값 형식 또는 키워드 위반 |
+| `VALUE_INVALID` | 값 형식 또는 키워드 위반, 위치 지정의 기준 노드가 대상 부모의 자식이 아님 |
 | `STYLE_NOT_ALLOWED` | 스타일 허용 목록 밖의 CSS 속성 또는 값 |
 | `TOKEN_TYPE_MISMATCH` | 바인딩·참조의 타입 불일치 |
 | `TOKEN_CYCLE` | 토큰 참조 순환 |
@@ -340,3 +351,4 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 - 중첩 인스턴스(컴포넌트 안의 인스턴스)의 override 경로 표기
 - `detach` 시 새 노드 ID 생성 규칙, enum 옵션 이름 변경 시 `@var` 키 일괄 갱신 방식
 - grid 트랙 크기 지정(현재는 균등 열 수만), `margin` 허용 여부
+- 예약 ID `mode`가 2절의 ID 정규식(6자 이상)에 맞지 않는다. 토큰을 구현하는 v0.5에서 예약 ID 이름이나 정규식을 고친다

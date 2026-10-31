@@ -1,0 +1,172 @@
+{
+  "cases": [
+    {
+      "name": "뒤 연산이 실패하면 전부 거부",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "delete",
+            "id": "box002"
+          },
+          {
+            "op": "set",
+            "id": "box001",
+            "props": {
+              "layout.mode": "block"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "VALUE_INVALID",
+          "opIndex": 1,
+          "id": "box001",
+          "key": "layout.mode"
+        }
+      }
+    },
+    {
+      "name": "알 수 없는 연산",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "delete",
+            "id": "box002"
+          },
+          {
+            "op": "detach",
+            "id": "box001"
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "SCHEMA_INVALID",
+          "opIndex": 1,
+          "id": null,
+          "key": null
+        }
+      }
+    },
+    {
+      "name": "빈 연산 배열",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": []
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "SCHEMA_INVALID",
+          "opIndex": null,
+          "id": null,
+          "key": null
+        }
+      }
+    }
+  ]
+}

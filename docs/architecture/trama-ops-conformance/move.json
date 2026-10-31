@@ -1,0 +1,400 @@
+{
+  "cases": [
+    {
+      "name": "같은 부모 안에서 순서 변경",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "move",
+            "id": "box001",
+            "parent": "sect01",
+            "placement": {
+              "after": "txt001"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": true,
+        "doc": {
+          "schemaVersion": 1,
+          "objects": {
+            "frame1": {
+              "type": "frame",
+              "parent": null,
+              "order": "a0",
+              "name": "Home"
+            },
+            "sect01": {
+              "type": "section",
+              "parent": "frame1",
+              "order": "a0"
+            },
+            "box001": {
+              "type": "container",
+              "parent": "sect01",
+              "order": "a2"
+            },
+            "box002": {
+              "type": "container",
+              "parent": "box001",
+              "order": "a0"
+            },
+            "txt001": {
+              "type": "text",
+              "parent": "sect01",
+              "order": "a1",
+              "content": "hello"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "다른 부모로 이동",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "move",
+            "id": "box002",
+            "parent": "sect01",
+            "placement": "first"
+          }
+        ]
+      },
+      "expect": {
+        "ok": true,
+        "doc": {
+          "schemaVersion": 1,
+          "objects": {
+            "frame1": {
+              "type": "frame",
+              "parent": null,
+              "order": "a0",
+              "name": "Home"
+            },
+            "sect01": {
+              "type": "section",
+              "parent": "frame1",
+              "order": "a0"
+            },
+            "box001": {
+              "type": "container",
+              "parent": "sect01",
+              "order": "a0"
+            },
+            "box002": {
+              "type": "container",
+              "parent": "sect01",
+              "order": "Zz"
+            },
+            "txt001": {
+              "type": "text",
+              "parent": "sect01",
+              "order": "a1",
+              "content": "hello"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "자기 하위로 이동",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "move",
+            "id": "box001",
+            "parent": "box002",
+            "placement": "last"
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "TREE_CYCLE",
+          "opIndex": 0,
+          "id": "box001",
+          "key": null
+        }
+      }
+    },
+    {
+      "name": "기준 노드가 형제가 아님",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "move",
+            "id": "txt001",
+            "parent": "sect01",
+            "placement": {
+              "after": "box002"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "VALUE_INVALID",
+          "opIndex": 0,
+          "id": "txt001",
+          "key": null
+        }
+      }
+    },
+    {
+      "name": "기준 노드가 자기 자신",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "move",
+            "id": "txt001",
+            "parent": "sect01",
+            "placement": {
+              "after": "txt001"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "VALUE_INVALID",
+          "opIndex": 0,
+          "id": "txt001",
+          "key": null
+        }
+      }
+    },
+    {
+      "name": "없는 기준 노드",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "move",
+            "id": "txt001",
+            "parent": "sect01",
+            "placement": {
+              "before": "nobody"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "UNKNOWN_OBJECT",
+          "opIndex": 0,
+          "id": "nobody",
+          "key": null
+        }
+      }
+    }
+  ]
+}

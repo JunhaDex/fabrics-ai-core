@@ -1,0 +1,74 @@
+{
+  "cases": [
+    {
+      "name": "하위 노드를 함께 삭제",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "delete",
+            "id": "box001"
+          }
+        ]
+      },
+      "expect": {
+        "ok": true,
+        "doc": {
+          "schemaVersion": 1,
+          "objects": {
+            "frame1": {
+              "type": "frame",
+              "parent": null,
+              "order": "a0",
+              "name": "Home"
+            },
+            "sect01": {
+              "type": "section",
+              "parent": "frame1",
+              "order": "a0"
+            },
+            "txt001": {
+              "type": "text",
+              "parent": "sect01",
+              "order": "a1",
+              "content": "hello"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

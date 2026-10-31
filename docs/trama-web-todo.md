@@ -41,7 +41,7 @@ Slack: `C0CDK58U22F`
 - 서버가 헤드리스 Chromium에서 불러 쓸 단독 ESM 번들 `render.js`는 Next 빌드와 별도로 tsdown으로
   만든다(common-design과 같은 번들러). 2단계 착수 시 추가한다 (제안, 승인 대기)
 
-### web·server 계약과 원칙 유지 방식 (제안, 승인 대기)
+### web·server 계약과 원칙 유지 방식
 - 하나의 렌더 경로(원칙 2): 서버는 변환기를 다시 구현하지 않는다. 헤드리스 Chromium 페이지에 web의
   `render.js`를 불러 같은 함수로 `srcdoc`·`annotated` 출력을 만든다. 서버 렌더와 `inspect`가 편집기와 같은
   코드, 같은 엔진을 쓴다
@@ -52,7 +52,7 @@ Slack: `C0CDK58U22F`
   - 출력 CSS 허용 목록도 코드가 아니라 데이터 파일로 계약에 둔다
 - 스키마는 zod 4로 정의하고 `z.toJSONSchema()`로 JSON Schema를 생성한다
 
-### 1단계에서 "서버가 최종 검증" 원칙을 지키는 방식 (제안, 승인 대기)
+### 1단계에서 "서버가 최종 검증" 원칙을 지키는 방식
 - 편집기는 문서 상태를 직접 바꾸지 않는다. 모든 편집은 `apply_ops` 연산 배열을 만들어 문서 소스(`DocSource`)에 보낸다
 - 1단계 구현은 `LocalSource`다. 브라우저 안에서 `src/model`의 검증·적용 함수를 호출한다. 2단계에서
   WebSocket으로 서버에 보내는 `RemoteSource`로 교체한다. 편집기 코드는 바뀌지 않는다
@@ -60,16 +60,19 @@ Slack: `C0CDK58U22F`
 - Undo는 적용 결과로 역연산을 만들어 actor별 스택에 쌓는다. 트랜잭션 1개가 Undo 1단계다
 - 저장은 IndexedDB이고, 문서 JSON 파일로 내보내기·가져오기를 지원한다
 
-### 문서 모델 (제안, 승인 대기)
-- 초안은 `docs/architecture/trama-document-model.md`다. 핵심은 아래와 같다
+### 문서 모델
+- `docs/architecture/trama-document-model.md` 초안을 v0.2 구현 기준으로 승인했다. 구현 중 바뀌는 부분은 문서를 함께 고친다. 핵심은 아래와 같다
   - 문서는 `객체 ID → 속성 키 → 값`의 평면 맵이고, 충돌 단위는 `(ID, 키)` 하나다
-  - 트리는 `parent` + `order`(fractional index)로 표현하고, 연산은 위치 지정(`first`, `last`, `before`, `after`)만 받는다
+  - 트리는 `parent` + `order`(fractional index)로 표현하고, 연산은 `placement` 필드로 위치 지정(`first`, `last`, `before`, `after`)만 받는다. CSS에 대응하는 노드 속성 `position`과 구분하기 위해 이 이름을 쓴다
   - override는 `기본키@bp:<BP ID>@var:<속성 ID>=<값>@state:<상태>` 키로 저장한다. BP와 속성을 ID로 참조한다
   - 연산은 `create`, `set`, `move`, `delete`, `detach` 5개다. 레이아웃·토큰 바인딩·인스턴스 속성 변경은 모두 `set`이다
   - Undo는 이전 값으로 되돌리는 새 트랜잭션이며, 이후 다른 참여자가 바꾼 키는 건너뛴다
+  - 텍스트 `content`는 서식 없는 문자열이다. 인라인 서식은 이후 구조 확장 시 다시 정한다
+  - 절대 배치는 부모의 레이아웃 모드가 아니라 노드 속성이다. 모든 노드는 편집기에서 rect(x, y, w, h)로 다루고, `position`(기본 `static`)을 `absolute`로 바꾸면 그 순간의 rect를 부모 좌상단 기준으로 저장한다. 제약(우측·중앙 고정 등)은 두지 않고, static으로 되돌려도 좌표는 보존한다
 
-### 변환기 (제안, 승인 대기)
+### 변환기
 - `src/render`는 순수 함수다. DOM·브라우저 API에 의존하지 않는다
+- 출력 클래스 이름은 노드 ID 기반 `.n-<id>`다. 항상 유일하고 레이어 이름 변경이 출력에 영향을 주지 않는다
 - 문서 → 중간 트리(요소 트리 + CSS 규칙 목록) → 직렬화 순서로 변환한다. 직렬화 대상은 3개다
   - `export`: 내보내기용 HTML/CSS
   - `srcdoc`: 편집기 iframe용. `data-id`를 포함한다
@@ -86,9 +89,21 @@ Slack: `C0CDK58U22F`
   `docs/architecture/trama-html-conversion.md`에 현행 명세로 둔다. 다른 언어로 만드는 서버와 외부 AI(MCP)가
   같은 계약을 따르기 때문이다. 기계 판독용 계약 파일(JSON Schema, 적합성 fixture, CSS 허용 목록)도 같은 폴더에 둔다
 
-## 진행 중
+## 진행 중: v0.2 문서 모델과 변환기
 
-_(현재 없음. 다음 착수 대상은 v0.2)_
+- 컨텍스트: 편집기 UI 없이, 문서를 검증·적용하는 model과 HTML/CSS로 바꾸는 render를 먼저 만들어 계약을 고정한다
+- 핵심 기능 (모두 완료되면 릴리스):
+  - [x] `src/model`: zod 스키마, `apply_ops`(`create`·`set`·`move`·`delete`) 검증·적용, fractional index, 트리 순환 검사
+  - [x] `src/render`: Frame·Section·container·text·image를 flex/grid/absolute와 sizing 규칙에 따라 HTML/CSS로 변환 (base 구간만)
+  - [x] 결정성을 golden 테스트로 검증
+  - [x] `docs/architecture/`: 문서 모델 명세 확정, `trama-html-conversion.md` 작성, `trama-ops.schema.json`과 적합성 fixture 생성
+- 세부 step:
+  - [x] 테스트 러너(vitest)와 zod 4 추가
+  - [x] model: 값 형식·속성 키 스키마, 트랜잭션 스키마
+  - [x] model: fractional index, 부모 규칙, 순환 검사, 연산 적용과 원자성
+  - [x] render: 중간 트리, CSS 규칙 정렬, `export`·`srcdoc`·`annotated` 직렬화
+  - [x] 계약 파일 생성 (`src/model/contract.test.ts`가 메타 저장소에 스냅숏으로 쓴다)
+- 다음 행동: v0.2 핵심 기능 완료. 주석 점검 후 push·PR, 릴리스한다
 
 ## 다음 버전 (계획)
 
@@ -114,11 +129,9 @@ _(현재 없음. 다음 착수 대상은 v0.2)_
 
 ## 미확정 사항
 
-- 출력 클래스 명명 규칙: 노드 ID 기반(`.n-<id>`)인지, 사용자가 붙인 이름 기반인지. 결정성은 둘 다 만족하므로 내보낸 코드의 가독성 기준으로 정한다
-- 텍스트 노드의 서식 범위: 노드 하나 안에서 인라인 서식(굵게, 링크 등)을 허용하는지. 명세에 없다
 - 이미지 자산 저장: 1단계 IndexedDB blob, 내보내기 시 파일 묶음 형식, 2단계 객체 저장소
 - 웹폰트: `fontFamily` 토큰이 가리키는 폰트의 로딩 방식과 내보내기 포함 여부
 - 서버 언어와 배포 대상(terraform 프로바이더). 2단계 착수 전에 정한다
 - 2단계 저장소의 등록 방식: todo 파일명 규칙(`<디렉터리명>-todo.md`)과 Slack 채널-디렉터리 1:1 매핑은 저장소가 하나일 때를 전제한다. server·infra 저장소가 생기면 이 todo와 채널을 어떻게 대응시킬지 정한다
 - 문서 모델 초안의 미확정 사항 (`docs/architecture/trama-document-model.md` 11절)
-- 명세 Q15·"기술 스택과 대상 브라우저" 절을 서버 언어 철회에 맞게 고칠지 여부
+- 명세 Q15·"기술 스택과 대상 브라우저" 절을 서버 언어 철회에 맞게 고칠지 여부. 레이아웃 규칙 5("absolute 컨테이너")도 노드 단위 `position` 결정과 어긋난다
