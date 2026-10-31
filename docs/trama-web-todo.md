@@ -90,29 +90,9 @@ Slack: `C0CDK58U22F`
   `docs/architecture/trama-html-conversion.md`에 현행 명세로 둔다. 다른 언어로 만드는 서버와 외부 AI(MCP)가
   같은 계약을 따르기 때문이다. 기계 판독용 계약 파일(JSON Schema, 적합성 fixture, CSS 허용 목록)도 같은 폴더에 둔다
 
-## 진행 중: v0.4 반응형과 오버플로
+## 진행 중
 
-- 컨텍스트: Frame 하나가 하나의 HTML이 되고 BP별 차이를 mobile-first `@media (min-width)`로만 표현하는 원칙을 편집기와 변환기에 구현한다. 넘침은 종류마다 다른 표시로 상시 보여준다
-- 핵심 기능 (모두 완료되면 릴리스):
-  - [x] model: breakpoint 객체, `@bp` override 키 검증, BP 삭제 시 override 정리
-  - [x] render: BP별 `@media (min-width)` 출력, 이미지 소스 BP override를 `<picture>`로 출력
-  - [x] 편집기: Frame별 BP 탭, 현재 BP에서의 override 편집과 해제, 구조·텍스트 편집은 모든 BP 적용 안내
-  - [x] 오버플로 표시: fold 라인과 아래 어둡게, minWidth 점선 영역, 가로 넘침 빨간 아웃라인, clip 배지, BP 숨김 표시
-  - [x] 화면 밖 Frame 가상화
-- 세부 step:
-  - [x] model
-  - [x] render
-  - [x] 편집기 BP
-  - [x] 오버플로 표시
-  - [x] 가상화
-- 구현 결정:
-  - 현재 BP는 Frame 미리보기 폭 이하인 BP 중 가장 큰 것이다. BP 탭은 미리보기 폭을 그 BP의 minWidth(base는 390과 Frame minWidth 중 큰 값)로 바꾼다
-  - HTML 미리보기는 Frame 선택 시 전체 문서, 그 밖의 노드 선택 시 그 노드의 HTML·CSS 조각을 따로 보여주고 각각 복사한다
-  - BP 탭으로 Frame이 넓어지거나 좁아지면, 오른쪽에 있으면서 세로로 겹치는 Frame을 폭 변화만큼 같은 트랜잭션에서 옮긴다. Frame을 보드에서 직접 끌어 옮기는 기능이 없기 때문이다
-  - iframe은 내용 높이까지 늘리고 폭은 미리보기 폭과 minWidth 중 큰 값으로 그린다. minWidth 미만 구간에는 BP가 없어 출력이 같기 때문이다
-  - 가로 넘침·clip 판정은 렌더 결과를 측정한다. 넘침은 미리보기 폭이 minWidth 이상일 때만 표시한다
-  - 가상화는 보드 뷰포트(여백 200px) 밖이거나 줌 25% 미만인 Frame을 SVG foreignObject 스냅샷으로 바꾼다. 외부 이미지는 스냅샷에 나오지 않는다
-- 다음 행동: v0.4 핵심 기능 완료. push 전 주석 점검 후 PR, 릴리스한다
+_(현재 없음. 다음 착수 대상은 v0.5)_
 
 ## 다음 버전 (계획)
 
@@ -127,6 +107,7 @@ Slack: `C0CDK58U22F`
 - 인프라: terraform
 
 ## 완료
+- v0.4 (2026-10-31) 반응형과 오버플로: `breakpoint`와 `@bp` override(검증·정리), BP별 `@media`(`revert`)·`<picture>` 출력, Frame별 BP 탭과 override 편집(현재 BP는 미리보기 폭으로 결정, 폭 변화 시 오른쪽 Frame 이동), 오버플로 표시(fold, minWidth 점선, 넘침 아웃라인, clip 배지, BP 숨김), SVG 스냅샷 가상화, 선택 노드 코드 조각 미리보기
 - v0.3 (2026-10-31) 작업 영역: `LocalSource`(Undo·Redo, IndexedDB), 보드 팬/줌과 Frame별 `srcdoc` iframe, 역변환 선택, 레이어 트리·속성 패널, 캔버스 드래그앤드롭, 기본 스타일 키(배경·글자·padding·border), HTML 미리보기 팝업(shiki)과 문서 JSON 저장·열기. 폴더 내보내기는 브라우저 보안 제약으로 미리보기로 대체
 - v0.2 (2026-10-31) 문서 모델과 변환기: `apply_ops`(`create`·`set`·`move`·`delete`) 검증·적용과 노드 5종의 HTML/CSS 변환(`export`·`srcdoc`·`annotated`), golden 테스트. 계약 문서 2개와 JSON Schema·적합성 fixture를 web 테스트가 생성
 - v0.1 (2026-10-31) 최초 골격: Next.js 앱과 `src/model`·`src/render`·`src/editor` 골격, common-design(`theme-neutral`) 빈 편집기 셸, `cliff.toml`. 프로젝트 `CLAUDE.md`·색인·Slack 매핑 구성
