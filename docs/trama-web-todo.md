@@ -90,25 +90,9 @@ Slack: `C0CDK58U22F`
   `docs/architecture/trama-html-conversion.md`에 현행 명세로 둔다. 다른 언어로 만드는 서버와 외부 AI(MCP)가
   같은 계약을 따르기 때문이다. 기계 판독용 계약 파일(JSON Schema, 적합성 fixture, CSS 허용 목록)도 같은 폴더에 둔다
 
-## 진행 중: v0.3 작업 영역
+## 진행 중
 
-- 컨텍스트: v0.2의 model·render 위에 첫 편집기 UI를 올려, 사람이 문서를 만들고 고치고 내보낼 수 있게 한다
-- 핵심 기능 (모두 완료되면 릴리스):
-  - [x] `LocalSource`: 모든 편집을 `apply_ops`로 적용, actor별 Undo·Redo, IndexedDB 저장, 문서 JSON 내보내기·가져오기
-  - [x] 보드: 팬/줌, Frame별 `srcdoc` iframe(`sandbox="allow-same-origin"`, `pointer-events: none`)
-  - [x] 오버레이: 역변환 좌표로 선택, 선택 테두리
-  - [x] 레이어 트리와 속성 패널로 노드 추가·삭제·이동·속성 편집
-  - [x] 드래그앤드롭: flow 컨테이너는 삽입 인덱스, absolute 노드는 좌표 이동
-  - [x] 기본 스타일 키: 배경색, 글자색·크기·굵기, padding, border, radius. 값은 Dimension·Color(srgb). 허용 목록 생성(web-features)은 이후 버전에서 대체한다
-  - [x] HTML 미리보기: 내보내기 HTML(CSS 인라인)을 팝업에서 코드로 보여주고 복사한다. 코드 강조는 shiki. 폴더에 파일을 쓰는 방식은 브라우저 보안 제약으로 쓰지 않는다
-- 세부 step:
-  - [x] model: 적용 결과로 `(ID, 키)`별 변경 목록을 돌려주고, 변경 목록으로 되돌리는 함수 추가
-  - [x] `LocalSource`와 zustand 스토어
-  - [x] 보드·iframe·오버레이
-  - [x] 레이어 트리·속성 패널
-  - [x] 드래그앤드롭
-  - [x] IndexedDB 저장, JSON 저장·열기, HTML 미리보기
-- 다음 행동: v0.3 핵심 기능 완료. push 전 주석 점검 후 PR, 릴리스한다
+_(현재 없음. 다음 착수 대상은 v0.4)_
 
 ## 다음 버전 (계획)
 
@@ -125,6 +109,7 @@ Slack: `C0CDK58U22F`
 - 인프라: terraform
 
 ## 완료
+- v0.3 (2026-10-31) 작업 영역: `LocalSource`(Undo·Redo, IndexedDB), 보드 팬/줌과 Frame별 `srcdoc` iframe, 역변환 선택, 레이어 트리·속성 패널, 캔버스 드래그앤드롭, 기본 스타일 키(배경·글자·padding·border), HTML 미리보기 팝업(shiki)과 문서 JSON 저장·열기. 폴더 내보내기는 브라우저 보안 제약으로 미리보기로 대체
 - v0.2 (2026-10-31) 문서 모델과 변환기: `apply_ops`(`create`·`set`·`move`·`delete`) 검증·적용과 노드 5종의 HTML/CSS 변환(`export`·`srcdoc`·`annotated`), golden 테스트. 계약 문서 2개와 JSON Schema·적합성 fixture를 web 테스트가 생성
 - v0.1 (2026-10-31) 최초 골격: Next.js 앱과 `src/model`·`src/render`·`src/editor` 골격, common-design(`theme-neutral`) 빈 편집기 셸, `cliff.toml`. 프로젝트 `CLAUDE.md`·색인·Slack 매핑 구성
 
