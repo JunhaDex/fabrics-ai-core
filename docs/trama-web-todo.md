@@ -103,23 +103,9 @@ Slack: `C0CDK58U22F`
   `docs/architecture/trama-html-conversion.md`에 현행 명세로 둔다. 다른 언어로 만드는 서버와 외부 AI(MCP)가
   같은 계약을 따르기 때문이다. 기계 판독용 계약 파일(JSON Schema, 적합성 fixture, CSS 허용 목록)도 같은 폴더에 둔다
 
-## 진행 중: v0.5 디자인 토큰
+## 진행 중
 
-- 컨텍스트: 토큰의 원본을 도구 안에 두고, 노드가 토큰을 바인딩하며, modifier 컨텍스트별 값을 CSS 사용자 정의 속성으로 출력한다
-- 핵심 기능 (모두 완료되면 릴리스):
-  - [x] model: `modifier`·`token` 객체, 노드 토큰 바인딩, 검증(값 형식, 참조 타입, 모든 컨텍스트 조합의 순환, 사용 중, 이름 중복), 경고(`TOKEN_DEPRECATED`, `RAW_TOKEN_BOUND`)
-  - [x] render: `:root`·`:root[data-*]`·`prefers-color-scheme` 블록, `var()` 참조 유지
-  - [x] 편집기: 토큰 표 편집기, modifier 편집과 컨텍스트 복제, 상단 modifier 미리보기 토글, 속성 패널 토큰 바인딩
-  - [x] 조합 미리보기(칸을 누르면 원본 토큰으로 이동), 램프 생성기(OKLCH)
-  - [x] DTCG 2025.10 `tokens.json`·`resolver.json` 내보내기·가져오기
-- 구현 결정:
-  - 기본 제공 modifier `_mode`는 문서에 저장하지 않고 항상 있는 것으로 다룬다. 기존 문서는 이전(마이그레이션) 없이 그대로 쓴다
-  - 토큰 이름 구간은 영숫자만 허용한다. CSS 변수 이름(`.` → `-`)이 서로 겹치지 않게 하기 위해서다
-  - CSS에는 그 Frame이 쓰는 토큰과 그 참조 대상만 낸다. modifier 속성은 `<html>`에 둔다
-  - `style.font-family`는 토큰 바인딩만 받는다(웹폰트를 로드하지 않는 결정과 일반 계열 강제를 토큰에서 보장)
-  - DTCG 내보내기는 다운로드 대신 코드 팝업에 두 파일을 보여주고 복사한다. 그룹이기도 한 토큰 이름은 `$root`로 낸다. 내부 ID는 `$extensions["org.fabrics.trama"]`에 넣는다
-  - DTCG 가져오기는 한 트랜잭션으로 적용한다. 내부 ID 또는 이름으로 기존 토큰을 갱신하고, fontWeight 별칭은 숫자로 바꾸며, 지원하지 않는 타입(shadow 등)은 건너뛰고 알린다
-- 다음 행동: v0.5 핵심 기능 완료. push 전 주석 점검 후 PR, 릴리스한다
+_(현재 없음. 다음 착수 대상은 v0.6)_
 
 ## 다음 버전 (계획)
 
@@ -132,6 +118,7 @@ Slack: `C0CDK58U22F`
 - 인프라: terraform
 
 ## 완료
+- v0.5 (2026-11-01) 디자인 토큰: `modifier`·`token`과 노드 토큰 바인딩(검증: 타입, 모든 조합의 순환, 사용 중, 이름), `:root`·`:root[data-*]`·`prefers-color-scheme` CSS 출력과 `var()` 참조 유지, 토큰 표 편집기·modifier 미리보기·조합 미리보기·OKLCH 램프·컨텍스트 복제, DTCG 2025.10 내보내기·가져오기. 구현 결정: `_mode`는 저장하지 않는 가상 객체, 토큰 이름 구간은 영숫자, modifier 속성은 `<html>`, `style.font-family`는 토큰 바인딩 전용
 - v0.4 (2026-10-31) 반응형과 오버플로: `breakpoint`와 `@bp` override(검증·정리), BP별 `@media`(`revert`)·`<picture>` 출력, Frame별 BP 탭과 override 편집(현재 BP는 미리보기 폭으로 결정, 폭 변화 시 오른쪽 Frame 이동), 오버플로 표시(fold, minWidth 점선, 넘침 아웃라인, clip 배지, BP 숨김), SVG 스냅샷 가상화, 선택 노드 코드 조각 미리보기
 - v0.3 (2026-10-31) 작업 영역: `LocalSource`(Undo·Redo, IndexedDB), 보드 팬/줌과 Frame별 `srcdoc` iframe, 역변환 선택, 레이어 트리·속성 패널, 캔버스 드래그앤드롭, 기본 스타일 키(배경·글자·padding·border), HTML 미리보기 팝업(shiki)과 문서 JSON 저장·열기. 폴더 내보내기는 브라우저 보안 제약으로 미리보기로 대체
 - v0.2 (2026-10-31) 문서 모델과 변환기: `apply_ops`(`create`·`set`·`move`·`delete`) 검증·적용과 노드 5종의 HTML/CSS 변환(`export`·`srcdoc`·`annotated`), golden 테스트. 계약 문서 2개와 JSON Schema·적합성 fixture를 web 테스트가 생성
