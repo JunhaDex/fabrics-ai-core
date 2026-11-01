@@ -54,33 +54,16 @@ Slack: `C0CDC8Y5UKH`
   태그 `postgres:18`로 고정한다. 마이너 업데이트만 따라간다
 - CHANGELOG는 git-cliff로 만든다. `cliff.toml`은 trama-web, stylist-web과 같은 형식이다
 
-## 진행 중: v0.1 최초 골격
-- 컨텍스트: 저장소와 로컬 실행 환경을 세우고, Spring Boot 앱을 공식 문서 기준으로 기동한다
-- 핵심 기능 (모두 완료되면 릴리스):
-  - [ ] 로컬에서 기동하는 Spring Boot 앱과 PostgreSQL 실행 환경
-  - [ ] 프로젝트 CLAUDE.md와 루트 색인 등록
-- 세부 step:
-  - [x] GitHub 저장소 `fabrics-auth-api` 생성
-  - [x] `projects/auth-api/`에 clone
-  - [x] Spring Initializr로 프로젝트 생성 (Spring Boot 4.1.2, Kotlin 2.3.21, Gradle 9.8.2)
-  - [x] CHANGELOG 생성기 설정 (`cliff.toml`)
-  - [x] Slack 채널 생성(`C0CDC8Y5UKH`) 및 CodeButler 봇 초대
-  - [x] first commit, 원격 저장소 push
-  - [x] `./gradlew bootRun` 기동 확인 (PostgreSQL 컨테이너, 기본 로그인 폼)
-  - [x] 프로젝트 `CLAUDE.md`(SSOT import), `.claude/settings.json` 작성
-  - [x] `docs/PROJECTS.md`, 루트 `CLAUDE.md` 프로젝트 색인 갱신
-  - [ ] slack-worker 실행 기기의 `channels.local.json`에 `C0CDC8Y5UKH` → `auth-api` 매핑 추가
-  - [x] 프로젝트 `CLAUDE.md`, `.claude/settings.json` 커밋·push
-- 다음 행동: 남은 step을 마치고 v0.1을 릴리스한다. 이후 `projects/auth-api/`에서
-  프로젝트 세션을 시작해 v0.2(소셜 로그인과 회원 모델) 범위를 확정한다
+## 진행 중
+
+_(현재 없음. 다음 착수 대상은 v0.2)_
 
 ## 다음 버전 (계획)
 - v0.2: 회원·소셜 계정 데이터 모델과 Flyway 마이그레이션, Google 로그인부터 시작하는 외부 제공자 연동
 - 이후: 자체 이메일·비밀번호 가입과 메일 인증, 계정 연결, refresh token·일회용 교환 토큰·JWKS, 탈퇴
 
 ## 완료
-
-_(없음)_
+- v0.1 (2026-11-01) 최초 골격: Spring Boot 4.1.2·Kotlin 2.3.21·Gradle 9.8.2 앱과 Docker Compose `postgres:18` 로컬 실행 환경(`./gradlew bootRun` 기동 확인), git-cliff `cliff.toml`, 프로젝트 `CLAUDE.md`(SSOT import)·`.claude/settings.json`, 루트 색인 등록, Slack 채널 `C0CDC8Y5UKH` slack-worker 연동
 
 ## 미확정 사항
 - **배포 범위 이후의 인프라**. v0.1은 로컬 실행 검증까지다. 호스팅, TLS, 비밀값
