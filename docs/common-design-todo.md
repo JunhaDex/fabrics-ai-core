@@ -181,6 +181,7 @@
 - v0.6 fabrics 도메인 컴포넌트: 목록은 첫 소비 프로젝트 기획 시 확정
 
 ## 완료
+- v0.5.1 (2026-10-15) core 패치: 테두리 없는 Button(primary·danger·ghost)·Toggle 에 투명 테두리를 둬서 한 행 컨트롤 높이를 통일(2px 증가, sm neutral 38·brutalism 30·tactile 42px. 강제 색상 모드에서도 경계 유지). 값·placeholder 없는 Select 높이 축소 수정(Radix `SelectValue` 가 className 을 버려 감싸는 span 에 `min-h-lh`). `color.track` 은 장식으로 보고 3:1 을 요구하지 않는 대신 채워진 구간·손잡이 3:1 을 단언. `Accessibility/ControlHeight`·`ValueContrast` 추가, 테스트 473 → 479개. 이 릴리스부터 저장소 병합을 squash 전용(커밋 제목 = PR 제목)으로 설정
 - v0.5.0 (2026-10-14) 테마: `theme-brutalism`(compact, 직각·외곽선+하드 오프셋 그림자), `theme-tactile-surface`(comfortable, 밝은/어두운 그림자 쌍의 볼록·오목) 초안 추가. 테마 빌드를 `buildTheme(name, modes)`로 공용화하고 `theme.scoped.css`(`[data-theme]`)로 Storybook 테마 툴바와 테마별 테스트 프로젝트(`storybook:<theme>`)를 만들었다. 모드별 `color-scheme` 출력. 의미 슬롯 56 → 62개(`shadow.control`·`control-pressed`·`field`, `spacing.press`, `font.body`, `color.border-field`). 필드 경계 3:1 확보로 neutral 필드 테두리가 gray-500으로 진해지고 Checkbox radius가 4px로 바뀌었다(시각 변화). 크기 단언은 `slotPx()`로 슬롯 값을 읽고, `Accessibility/TargetSize`·`FieldBoundary`가 모든 테마·모드에서 24px·3:1을 단언한다. 테스트 151 → 473개(3개 테마 합계)
 - v0.4.0 (2026-10-13) 레이아웃 컴포넌트: 내비게이션 3종(TopBar, SideNav, BottomTabBar), Dialog, AlertDialog, Footer, Columns, BentoGrid를 DoD 3요건으로 완성. 내비는 stylist-web 로컬 AppShell을 요구사항 입력으로 삼아 승격했고, `{ href, label, icon, current? }` 배열 + `linkComponent`로 라우터에 의존하지 않는다. Dialog는 md 미만에서 하단 시트로 전환하고, Columns·BentoGrid는 뷰포트가 아닌 컨테이너 쿼리로 펼친다. 의미 슬롯 53 → 56개(`scrim`, `spacing.bar`, `spacing.nav`), Toast viewport를 `z-60`으로 올려 모달 위에서 조작 가능하게 했다. 테스트 118 → 151개
 - v0.3.0 (2026-10-05) 데이터 표시 컴포넌트: Badge, Separator, Tabs, Accordion, Table, DataTable(단일 열 정렬·다중 선택·클라이언트 페이지네이션)을 DoD 3요건으로 완성. 톤 매트릭스(6톤 × solid/subtle/outline)와 셀 패딩 슬롯으로 의미 슬롯 41 → 53개, 대비 기준(텍스트 4.5:1·테두리 3:1) 적용으로 기존 테마 값 4개 변경(dark Button primary·danger 글자색 반전). 테스트 81 → 118개
@@ -206,9 +207,5 @@
 - Field + RadioGroup 조합. Field는 `<label htmlFor>`를 쓰는데 radiogroup은 div라 레이블이 걸리지 않는다. 그룹 레이블은 `aria-labelledby`나 fieldset/legend가 필요하므로 Field에 그룹 모드를 넣을지 판단해야 한다
 - Select의 옵션 그룹(optgroup) 지원과 Slider의 범위(2-thumb) 지원 여부. props 래핑 API의 경계이며, 실제 요구가 생길 때 추가한다
 - Storybook 자체 호스트 위치와 시기
-- (2026-10-15 실측) 테두리가 있는 컨트롤(secondary Button, Input)이 primary Button 보다 2px 크다(1px border). 모든 테마
-  공통이며 v0.4 부터 있었다. 같은 행에 놓일 때 높이를 맞출지(border 를 그림자로 옮기거나 primary 에 투명 border) 판단 필요
-- (2026-10-15 실측) `color.track`(Progress·Slider 의 채워지지 않은 트랙)이 페이지 면 대비 1.27–1.93 이다(모든 테마).
-  WCAG 1.4.11 적용 여부는 해석이 갈린다(Switch 는 더 진한 색을 써서 무관)
 - (2026-10-15 실측, tactile-surface 고도화 과제) light 에서 subtle Badge 면이 gray-100 페이지와 거의 구분되지 않는다.
   여유가 적은 대비: ring 3.35, outline Badge success·warning 4.56·4.57, brand 대 면 4.70
