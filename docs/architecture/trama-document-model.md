@@ -1,14 +1,14 @@
 # trama 문서 모델과 연산 계약 (초안)
 
 trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` 연산, 검증 규칙,
-오류 코드의 현행 명세다. web(편집기, TypeScript)과 server(언어 미정)의 두 구현,
+오류 코드의 현행 명세다. web(편집기, TypeScript)과 server(Kotlin)의 두 구현,
 그리고 MCP로 접속하는 AI가 이 문서를 그대로 따른다. 요구사항의 정본은
 `../references/fabrics-tala-requirements.md`이고, 결정의 근거는 `../trama-web-todo.md`의
 "결정 사항"에 있다. HTML/CSS 변환 규칙은 `trama-html-conversion.md`가 담당한다.
 
-- 상태: v0.5. 노드 5종(frame, section, container, text, image), `breakpoint`, `modifier`, `token`, 연산 4개
-  (`create`, `set`, `move`, `delete`), `@bp`·`@ctx` 조건 키, 토큰 바인딩을 구현했다. 8절(컴포넌트), `@var`·`@state`,
-  `detach`는 해당 버전에서 구현하며 그때 확정한다
+- 상태: v0.6. 노드 7종(frame, component, section, container, text, image, instance), `breakpoint`, `componentProp`,
+  `modifier`, `token`, 연산 5개(`create`, `set`, `move`, `delete`, `detach`), `@bp`·`@cq`·`@var`·`@state`·`@ctx` 조건 키,
+  토큰 바인딩, 인스턴스 override를 구현했다
 - 기계 판독용 계약은 web의 테스트가 생성한다(`vitest run -u`). 손으로 고치지 않는다
   - `trama-ops.schema.json`: 트랜잭션과 종류별 props의 JSON Schema. 소수 자릿수 제한처럼 JSON Schema로
     표현되지 않는 조건은 `description`에 적는다
@@ -65,7 +65,8 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
   `container` 중 하나다. `section`의 부모는 `frame`만 가능하다
 - 트리는 각 객체의 `parent`와 `order`로만 표현한다. 부모가 자식 배열을 갖지 않는다
 - 형제 순서는 `(order, id)`의 사전순이다. `order`가 같으면 `id`로 정해지므로 결과가 항상 결정적이다
-- 이동으로 순환이 생기면 `TREE_CYCLE`로 거부한다
+- 이동으로 순환이 생기면 `TREE_CYCLE`로 거부한다. 인스턴스를 만들거나 옮겨 컴포넌트가 (중첩 인스턴스를 거쳐)
+  자기 자신의 인스턴스를 포함하게 되는 경우도 `TREE_CYCLE`이다
 
 ### order (fractional index)
 
@@ -105,7 +106,7 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 
 종류별 허용 태그:
 - `section`: `section`, `header`, `footer`, `nav`, `main`, `aside`, `article`
-- `container`: `div`, `ul`, `ol`, `li`, `figure`, `a`, `button`, `form`, `label`
+- `container`, `component`: `div`, `ul`, `ol`, `li`, `figure`, `a`, `button`, `form`, `label`
 - `text`: `p`, `h1`~`h6`, `span`, `strong`, `em`, `small`, `label`, `a`, `button`, `li`
 
 ### 레이아웃 (`frame`, `component`, `section`, `container`)
@@ -176,12 +177,13 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 | `frame` | `minWidth` | number(px). 기본 320 |
 | `frame` | `safeArea` | boolean. safe area inset 처리 여부. 기본 `false` |
 | `component` | `boardX`, `boardY` | 보드 좌표(px) |
+| `component` | `previewWidth`, `previewHeight` | 컴포넌트 보드 미리보기 크기. 출력에 영향 없음 |
 | `text` | `content` | 문자열(서식 없는 텍스트) |
 | `image` | `src`, `alt` | 자산, 문자열 |
 | `image` | `style.object-fit` | `cover`, `contain`, `fill` |
 | `instance` | `component` | 원본 `component` ID. 생성 후 변경 불가 |
 | `instance` | `props.<componentProp ID>` | 선택한 옵션 값 |
-| `instance` | `node.<원본 노드 ID>.<키>` | 인스턴스 override (아래 8절) |
+| `instance` | `node.<경로>.<키>` | 인스턴스 override (아래 8절) |
 | `breakpoint` | `minWidth` | number(px). 같은 Frame 안에서 유일, Frame `minWidth`보다 커야 함 |
 | `breakpoint` | `name` | 표시 이름 |
 
@@ -190,14 +192,16 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 ```
 키        := 기본키 ( "@" 조건 )*
 조건      := "bp:" BP_ID
+           | "cq:" 1~99999 정수(px, 앞자리 0 없음)
            | "var:" componentProp_ID "=" 옵션값
            | "state:" ( "hover" | "pressed" | "focus" | "disabled" )
 ```
 
-- 예: `layout.mode@bp:bp2`, `style.font-size@bp:bp2`, `style.background-color@var:cp1=danger`,
+- 예: `layout.mode@bp:bp2`, `style.font-size@bp:bp2`, `size.width@cq:200`, `style.background-color@var:cp1=danger`,
   `style.background-color@var:cp1=danger@state:hover`
-- 조건은 종류마다 최대 1개이고 `bp → var → state` 순서로만 쓴다. 다른 순서는 `KEY_INVALID`로
+- 조건은 종류마다 최대 1개이고 `bp|cq → var → state` 순서로만 쓴다. 다른 순서는 `KEY_INVALID`로
   거부한다. 같은 의미의 키가 두 가지로 저장되는 일을 막아 결정성을 지킨다
+- `@bp`와 `@cq`는 함께 쓸 수 없다. `@cq`는 다른 조건과도 조합할 수 없다(`CONDITION_NOT_ALLOWED`)
 - 조건 없는 키가 base 값이다. base 구간은 Frame의 가장 작은 BP보다 좁은 폭이며, mobile-first로
   BP의 `minWidth` 오름차순으로 덮어쓴다
 - BP를 ID로 참조하므로 BP의 `minWidth`를 바꿔도 override 키는 그대로다. Frame 생성 시 BP 2개
@@ -205,28 +209,29 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 
 ### 조건별 허용 키
 
-| 기본키 | `@bp` | `@var` | `@state` |
-|---|---|---|---|
-| `layout.*`, `size.*`, `grid.*`, `x`, `y`, `w`, `h` | 허용 | 허용 | 불허 |
-| `style.*` | 허용 | 허용 | 허용 |
-| `hidden` | 허용 | 허용 | 불허 |
-| `src` (image) | 허용 (`<picture>`로 출력) | 불허 | 불허 |
-| `position` | 불허 | 불허 | 불허 |
-| `content`, `tag`, `name`, `parent`, `order` 등 구조·텍스트 | 불허 | 불허 | 불허 |
+| 기본키 | `@bp` | `@cq` | `@var` | `@state` |
+|---|---|---|---|---|
+| `layout.*`, `size.*`, `grid.*`, `x`, `y`, `w`, `h` | 허용 | 허용 | 허용 | 불허 |
+| `style.*` | 허용 | 허용 | 허용 | 허용 |
+| `hidden` | 허용 | 허용 | 허용 | 불허 |
+| `src` (image) | 허용 (`<picture>`로 출력) | 불허 | 불허 | 불허 |
+| `position` | 불허 | 불허 | 불허 | 불허 |
+| `content`, `tag`, `name`, `parent`, `order` 등 구조·텍스트 | 불허 | 불허 | 불허 | 불허 |
 
 - `position`에는 조건을 붙일 수 없다(`CONDITION_NOT_ALLOWED`). 노드가 흐름 배치인지 절대 배치인지가
   BP마다 달라지는 것을 막기 위해서다
-- `@bp`의 BP는 그 노드가 속한 Frame의 것이어야 한다. 컴포넌트 원본 안의 노드는 `@bp`를 쓸 수
-  없다(원본에는 Frame이 없다). 컴포넌트의 반응형 처리 방식은 미확정이다
-- `@var`, `@state`는 컴포넌트 원본 안의 노드에만 쓸 수 있고, `var`의 속성은 그 컴포넌트의 것이어야 한다
-- BP나 `componentProp`을 삭제하면 그것을 참조하는 override 키가 같은 트랜잭션 안에서 함께 삭제된다
-- 노드를 다른 Frame으로 `move`하면 그 노드와 하위 노드의 `@bp` 키가 같은 트랜잭션 안에서 삭제된다. 원래
-  Frame의 BP를 가리키므로 대상이 없어지기 때문이다
+- 조건은 노드에만 붙일 수 있다. `@bp`는 Frame 안의 노드에만 쓰고, BP는 그 노드가 속한 Frame의 것이어야 한다
+- `@cq`, `@var`, `@state`는 컴포넌트 원본 안의 노드에만 쓴다. `@cq`는 컴포넌트 원본의 폭을 기준으로 하므로 원본 루트
+  자신에는 쓸 수 없다. `var`의 속성과 옵션은 그 컴포넌트의 것이어야 한다
+- BP나 `componentProp`을 삭제하면 그것을 참조하는 조건 키가 같은 트랜잭션 안에서 함께 삭제된다. enum `options`에서
+  빠진 옵션의 `@var` 키와 인스턴스 `props.*` 값도 같이 삭제된다
+- 노드를 다른 루트(Frame 또는 컴포넌트)로 `move`하면 그 노드와 하위 노드의 조건 키가 모두 같은 트랜잭션 안에서
+  삭제된다. 조건이 원래 루트의 BP·속성을 가리키므로 대상이 없어지기 때문이다
 - 조건 키의 값은 기본키의 값 형식을 따른다. `trama-ops.schema.json`의 종류별 props 정의는 기본키만 나열하므로,
-  조건 키는 `기본키@bp:<ID>`를 기본키 정의로 검증한다
-- 검증 순서: 기본키가 그 종류에 없으면 `KEY_NOT_ALLOWED`, `@var:`·`@state:`이면 `CONDITION_NOT_ALLOWED`,
-  `@bp:<ID>` 문법이 아니면 `KEY_INVALID`, 기본키가 위 표에서 `@bp` 불허면 `CONDITION_NOT_ALLOWED`, BP가 같은
-  Frame의 것이 아니면 `CONDITION_TARGET_MISSING`, 값이 맞지 않으면 `VALUE_INVALID`
+  조건 키는 기본키 정의로 검증한다
+- 검증 순서: 기본키가 그 종류에 없으면 `KEY_NOT_ALLOWED`, 조건 문법·순서가 틀리면 `KEY_INVALID`, 노드가 아니거나
+  기본키가 위 표에서 불허이거나 `@cq`를 다른 조건과 조합했거나 루트 종류가 맞지 않거나 컴포넌트 루트에 `@cq`를 쓰면
+  `CONDITION_NOT_ALLOWED`, BP·속성·옵션이 없으면 `CONDITION_TARGET_MISSING`, 값이 맞지 않으면 `VALUE_INVALID`
 - BP의 `minWidth`가 없거나, 같은 Frame의 다른 BP와 같거나, Frame `minWidth` 이하이면 `VALUE_INVALID`다.
   Frame `minWidth`를 바꿀 때도 같은 조건을 검사한다
 
@@ -276,21 +281,47 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 
 | 키 | 값 |
 |---|---|
-| `name` | 식별자. 출력 `data-<name>` 속성 이름 |
+| `name` | 식별자(`^[a-z][a-z0-9-]*$`). 출력 `data-<name>` 속성 이름. 같은 컴포넌트 안에서 유일 |
 | `kind` | `enum`, `boolean` |
-| `options` | `enum`일 때 옵션 값 배열(식별자). `boolean`은 `["true", "false"]`로 고정 |
+| `options` | `enum`에만 둔다. 옵션 값 배열(식별자), 1개 이상, 중복 없음. `boolean`의 옵션은 `["true", "false"]`로 고정 |
 | `default` | 옵션 값 하나 |
-| `order` | 속성 정의 순서. 같은 노드·같은 키를 두 속성이 바꾸면 뒤의 것이 이긴다 |
+
+- `name`, `kind`, `default`가 필요하고, `options`는 `enum`에만 반드시 둔다. 어기면 `VALUE_INVALID`, 이름이 겹치면 `NAME_CONFLICT`다
+- 속성 정의 순서는 `name`의 사전순이다. 같은 노드·같은 키를 두 속성의 `@var`가 바꾸면 뒤의 것이 이긴다
+- componentProp에는 `order`가 없다(노드가 아니다)
+
+### component와 instance
+
+- `component`는 보드 위 루트이며 레이아웃 키와 스타일 키를 가진다. 출력 태그는 `tag`(기본 `div`)다
+- `instance`를 만들 때 `component`가 필요하다. 없으면 `VALUE_INVALID`, 가리키는 컴포넌트가 없으면 `UNKNOWN_OBJECT`다
+- `props.<componentProp ID>`는 그 컴포넌트의 속성이어야 하고(`CONDITION_TARGET_MISSING`), 값은 그 속성의 옵션
+  값이어야 한다(`VALUE_INVALID`). 값이 없으면 속성의 `default`다
+- 인스턴스가 하나라도 있는 컴포넌트는 삭제할 수 없다(`COMPONENT_IN_USE`)
 
 ### 인스턴스 override
 
-- 키 형식: `node.<원본 노드 ID>.<기본키>`. 예: `node.n13.content`, `node.n20.src`,
-  `node.n13.style.color`, `node.n21.hidden`
-- 허용: `content`, `src`, `alt`, `hidden`, 그리고 원본 값이 토큰 바인딩인 `style.*`·
-  `layout.gap`·`size.*`의 다른 토큰 바인딩. 조건(`@bp` 등)은 붙일 수 없다
-- 구조 변경(자식 추가·삭제·이동)은 인스턴스 안에서 할 수 없다(`STRUCTURE_LOCKED`). 필요하면 `detach`한다
+- 키 형식: `node.<경로>.<기본키>`. 경로의 첫 구간은 원본 컴포넌트 트리의 노드 ID다. 중첩 인스턴스 안의 노드는
+  `/`로 이어 `node.<인스턴스 ID>/<노드 ID>.<키>`로 가리키며, 앞 구간은 인스턴스여야 한다.
+  예: `node.n13.content`, `node.n20.src`, `node.n13.style.color`, `node.cta01/label1.content`
+- 허용: text의 `content`, image의 `src`·`alt`, 원본 루트를 제외한 노드의 `hidden`, 그리고 원본 값이 토큰 바인딩인
+  키의 다른 토큰 바인딩
+- 검증: 경로 문법이 틀리면 `KEY_INVALID`, 조건(`@` 이후)을 붙이면 `CONDITION_NOT_ALLOWED`, 경로가 가리키는 노드가
+  없으면 `CONDITION_TARGET_MISSING`, 위 허용 범위 밖이면 `KEY_NOT_ALLOWED`, 값 형식이 틀리면 `VALUE_INVALID`
+- 구조 변경(자식 추가·삭제·이동)은 인스턴스 안에서 할 수 없다. 인스턴스는 자식을 갖지 않으며(`INVALID_PARENT`),
+  필요하면 `detach`한다
 - 노드 ID가 모든 변형에서 같으므로, `props.*`를 바꿔도 `node.*` override가 유지된다
-- 원본 노드가 삭제되면 그 노드를 가리키는 override 키는 무시되며, 다음 쓰기 때 서버가 정리한다
+- override는 원본의 base 값을 대신한다. 원본의 `@var`·`@state`·`@cq` 값은 override보다 우선한다
+- 원본 노드를 삭제하거나 옮겨 경로가 더는 노드를 가리키지 않으면, 그 override 키는 같은 트랜잭션 안에서 삭제된다
+
+### detach
+
+- 인스턴스를 같은 위치(`parent`, `order`)의 일반 노드 트리로 바꾼다. 원본 루트는 `container`가 되고, 인스턴스 자신의
+  공통·배치 키(`name`, `hidden`, `size.*`, `@bp` 키 등)가 그 위에 덮인다
+- 새 노드 ID: `"<인스턴스 ID>/<원본 노드 ID>"`의 UTF-8 SHA-256을 부호 없는 빅엔디언 정수로 보고, 62진수(`0-9A-Za-z`)의
+  가장 낮은 자리부터 21자를 낸다. 같은 인스턴스는 항상 같은 ID를 만든다. 이미 있는 ID면 `ID_CONFLICT`다
+- 인스턴스가 고른 변형의 `@var` 값과 override는 base 값으로 굳힌다. `@state`·`@cq` 키는 일반 노드가 가질 수 없으므로
+  버린다. 중첩 인스턴스는 인스턴스로 남고, 그 안을 가리키던 override는 경로 앞 구간을 떼어 옮긴다
+- 인스턴스가 아니면 `VALUE_INVALID`다
 
 ## 9. apply_ops
 
@@ -322,7 +353,7 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 | `set` | `id`, `props` | 속성 설정. 값 `null`은 삭제. 레이아웃, 스타일, 토큰 바인딩, 인스턴스 속성 변경이 모두 여기에 해당 |
 | `move` | `id`, `parent`, `placement` | 부모와 순서 변경. 노드만 옮길 수 있다 |
 | `delete` | `id` | 객체와 하위 노드, 그리고 그것을 참조하는 조건 키를 삭제 |
-| `detach` | `id` | 인스턴스를 일반 노드로 전환. 새 노드 ID 생성 규칙은 v0.6에서 정한다 |
+| `detach` | `id` | 인스턴스를 일반 노드 트리로 전환(8절) |
 
 `placement`는 `"first"`, `"last"`, `{ "before": ID }`, `{ "after": ID }` 중 하나다. `before`·`after`의 기준
 노드는 대상 부모의 자식이어야 하며, 없으면 `UNKNOWN_OBJECT`, 다른 부모의 자식이거나 자기 자신이면 `VALUE_INVALID`다.
@@ -358,7 +389,7 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 | `ID_CONFLICT` | 이미 있는 ID로 생성, 또는 예약 ID 사용 |
 | `TYPE_IMMUTABLE` | `type`, `instance.component` 변경 시도 |
 | `INVALID_PARENT` | 3절의 부모 규칙 위반 |
-| `TREE_CYCLE` | 이동으로 트리 순환 발생 |
+| `TREE_CYCLE` | 이동으로 트리 순환 발생, 컴포넌트가 자기 자신의 인스턴스를 포함 |
 | `KEY_INVALID` | 키 문법 오류, 조건 순서 오류 |
 | `KEY_NOT_ALLOWED` | 그 객체 종류에 없는 키 |
 | `CONDITION_NOT_ALLOWED` | 6절의 조건별 허용 키 위반 |
@@ -368,8 +399,9 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 | `TOKEN_TYPE_MISMATCH` | 바인딩·참조의 타입 불일치 |
 | `TOKEN_CYCLE` | 토큰 참조 순환 |
 | `TOKEN_IN_USE` | 참조 중인 토큰 삭제 |
+| `COMPONENT_IN_USE` | 인스턴스가 있는 컴포넌트 삭제 |
 | `NAME_CONFLICT` | 토큰·modifier·componentProp 이름 중복 |
-| `STRUCTURE_LOCKED` | 인스턴스 내부 구조 변경, 예약 modifier 삭제 |
+| `STRUCTURE_LOCKED` | 예약 modifier 변경·삭제 |
 
 ### 경고 (적용은 한다)
 
@@ -386,7 +418,5 @@ trama 문서의 데이터 구조, 속성 키, override 키 문법, `apply_ops` �
 
 - 텍스트 인라인 서식: 1단계는 서식 없는 문자열. 도입 시 `[{ text, marks }]` 구간 배열(marks: `strong`, `em`, `a`)
 - 자산: `asset` 객체(mime, name, 크기), ID는 내용 SHA-256 해시. image `src`는 URL 문자열 또는 `{ "asset": ID }`
-- 컴포넌트 원본의 반응형: 컨테이너 쿼리. 조건은 `@cq:<px>`로 BP와 별도
-- 중첩 인스턴스 override 경로: `node.<인스턴스 ID>/<노드 ID>.<키>`
-- `detach`: 새 노드 ID는 `(인스턴스 ID, 원본 노드 ID)` 해시의 21자 base62. enum 옵션 이름 변경 시 `@var` 키를 같은 트랜잭션에서 다시 씀
+- enum 옵션 이름 변경 시 `@var` 키를 같은 트랜잭션에서 다시 씀. 현재 `options`에서 빠진 옵션은 이름 변경이 아니라 삭제로 처리한다
 - `margin`은 허용하지 않음. grid 트랙 크기는 `layout.columns`의 트랙 크기 배열로 확장(필요 시)

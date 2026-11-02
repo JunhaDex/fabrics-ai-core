@@ -1,0 +1,1738 @@
+{
+  "cases": [
+    {
+      "name": "컴포넌트·속성·인스턴스 생성",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "create",
+            "id": "button",
+            "type": "component",
+            "parent": null,
+            "placement": "last",
+            "props": {
+              "name": "Button",
+              "tag": "button"
+            }
+          },
+          {
+            "op": "create",
+            "id": "tone01",
+            "type": "componentProp",
+            "parent": "button",
+            "props": {
+              "name": "tone",
+              "kind": "enum",
+              "options": [
+                "primary",
+                "danger"
+              ],
+              "default": "primary"
+            }
+          },
+          {
+            "op": "create",
+            "id": "icon01",
+            "type": "componentProp",
+            "parent": "button",
+            "props": {
+              "name": "icon",
+              "kind": "boolean",
+              "default": "true"
+            }
+          },
+          {
+            "op": "create",
+            "id": "label1",
+            "type": "text",
+            "parent": "button",
+            "placement": "last",
+            "props": {
+              "content": "확인"
+            }
+          },
+          {
+            "op": "create",
+            "id": "inst01",
+            "type": "instance",
+            "parent": "sect01",
+            "placement": "last",
+            "props": {
+              "component": "button",
+              "props.tone01": "danger",
+              "node.label1.content": "삭제"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": true,
+        "doc": {
+          "schemaVersion": 1,
+          "objects": {
+            "frame1": {
+              "type": "frame",
+              "parent": null,
+              "order": "a0",
+              "name": "Home"
+            },
+            "sect01": {
+              "type": "section",
+              "parent": "frame1",
+              "order": "a0"
+            },
+            "box001": {
+              "type": "container",
+              "parent": "sect01",
+              "order": "a0"
+            },
+            "box002": {
+              "type": "container",
+              "parent": "box001",
+              "order": "a0"
+            },
+            "txt001": {
+              "type": "text",
+              "parent": "sect01",
+              "order": "a1",
+              "content": "hello"
+            },
+            "button": {
+              "type": "component",
+              "parent": null,
+              "order": "a1",
+              "name": "Button",
+              "tag": "button"
+            },
+            "tone01": {
+              "type": "componentProp",
+              "parent": "button",
+              "name": "tone",
+              "kind": "enum",
+              "options": [
+                "primary",
+                "danger"
+              ],
+              "default": "primary"
+            },
+            "icon01": {
+              "type": "componentProp",
+              "parent": "button",
+              "name": "icon",
+              "kind": "boolean",
+              "default": "true"
+            },
+            "label1": {
+              "type": "text",
+              "parent": "button",
+              "order": "a0",
+              "content": "확인"
+            },
+            "inst01": {
+              "type": "instance",
+              "parent": "sect01",
+              "order": "a2",
+              "component": "button",
+              "props.tone01": "danger",
+              "node.label1.content": "삭제"
+            }
+          }
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "변형·상태·컨테이너 쿼리 조건 키",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          },
+          "button": {
+            "type": "component",
+            "parent": null,
+            "order": "a1",
+            "name": "Button",
+            "tag": "button"
+          },
+          "tone01": {
+            "type": "componentProp",
+            "parent": "button",
+            "name": "tone",
+            "kind": "enum",
+            "options": [
+              "primary",
+              "danger"
+            ],
+            "default": "primary"
+          },
+          "label1": {
+            "type": "text",
+            "parent": "button",
+            "order": "a0",
+            "content": "확인",
+            "style.font-size": {
+              "value": 14,
+              "unit": "px"
+            }
+          },
+          "inst01": {
+            "type": "instance",
+            "parent": "sect01",
+            "order": "a2",
+            "component": "button"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "set",
+            "id": "label1",
+            "props": {
+              "style.font-size@var:tone01=danger": {
+                "value": 20,
+                "unit": "px"
+              },
+              "style.font-size@var:tone01=danger@state:hover": {
+                "value": 22,
+                "unit": "px"
+              },
+              "size.width@cq:480": "fill"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": true,
+        "doc": {
+          "schemaVersion": 1,
+          "objects": {
+            "frame1": {
+              "type": "frame",
+              "parent": null,
+              "order": "a0",
+              "name": "Home"
+            },
+            "sect01": {
+              "type": "section",
+              "parent": "frame1",
+              "order": "a0"
+            },
+            "box001": {
+              "type": "container",
+              "parent": "sect01",
+              "order": "a0"
+            },
+            "box002": {
+              "type": "container",
+              "parent": "box001",
+              "order": "a0"
+            },
+            "txt001": {
+              "type": "text",
+              "parent": "sect01",
+              "order": "a1",
+              "content": "hello"
+            },
+            "button": {
+              "type": "component",
+              "parent": null,
+              "order": "a1",
+              "name": "Button",
+              "tag": "button"
+            },
+            "tone01": {
+              "type": "componentProp",
+              "parent": "button",
+              "name": "tone",
+              "kind": "enum",
+              "options": [
+                "primary",
+                "danger"
+              ],
+              "default": "primary"
+            },
+            "label1": {
+              "type": "text",
+              "parent": "button",
+              "order": "a0",
+              "content": "확인",
+              "style.font-size": {
+                "value": 14,
+                "unit": "px"
+              },
+              "style.font-size@var:tone01=danger": {
+                "value": 20,
+                "unit": "px"
+              },
+              "style.font-size@var:tone01=danger@state:hover": {
+                "value": 22,
+                "unit": "px"
+              },
+              "size.width@cq:480": "fill"
+            },
+            "inst01": {
+              "type": "instance",
+              "parent": "sect01",
+              "order": "a2",
+              "component": "button"
+            }
+          }
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "조건 순서 오류",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          },
+          "button": {
+            "type": "component",
+            "parent": null,
+            "order": "a1",
+            "name": "Button",
+            "tag": "button"
+          },
+          "tone01": {
+            "type": "componentProp",
+            "parent": "button",
+            "name": "tone",
+            "kind": "enum",
+            "options": [
+              "primary",
+              "danger"
+            ],
+            "default": "primary"
+          },
+          "label1": {
+            "type": "text",
+            "parent": "button",
+            "order": "a0",
+            "content": "확인",
+            "style.font-size": {
+              "value": 14,
+              "unit": "px"
+            }
+          },
+          "inst01": {
+            "type": "instance",
+            "parent": "sect01",
+            "order": "a2",
+            "component": "button"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "set",
+            "id": "label1",
+            "props": {
+              "style.font-size@state:hover@var:tone01=danger": {
+                "value": 1,
+                "unit": "px"
+              }
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "KEY_INVALID",
+          "opIndex": 0,
+          "id": "label1",
+          "key": "style.font-size@state:hover@var:tone01=danger"
+        }
+      }
+    },
+    {
+      "name": "@cq와 다른 조건의 조합",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          },
+          "button": {
+            "type": "component",
+            "parent": null,
+            "order": "a1",
+            "name": "Button",
+            "tag": "button"
+          },
+          "tone01": {
+            "type": "componentProp",
+            "parent": "button",
+            "name": "tone",
+            "kind": "enum",
+            "options": [
+              "primary",
+              "danger"
+            ],
+            "default": "primary"
+          },
+          "label1": {
+            "type": "text",
+            "parent": "button",
+            "order": "a0",
+            "content": "확인",
+            "style.font-size": {
+              "value": 14,
+              "unit": "px"
+            }
+          },
+          "inst01": {
+            "type": "instance",
+            "parent": "sect01",
+            "order": "a2",
+            "component": "button"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "set",
+            "id": "label1",
+            "props": {
+              "style.font-size@cq:480@state:hover": {
+                "value": 1,
+                "unit": "px"
+              }
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "CONDITION_NOT_ALLOWED",
+          "opIndex": 0,
+          "id": "label1",
+          "key": "style.font-size@cq:480@state:hover"
+        }
+      }
+    },
+    {
+      "name": "Frame 안 노드의 @var",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          },
+          "button": {
+            "type": "component",
+            "parent": null,
+            "order": "a1",
+            "name": "Button",
+            "tag": "button"
+          },
+          "tone01": {
+            "type": "componentProp",
+            "parent": "button",
+            "name": "tone",
+            "kind": "enum",
+            "options": [
+              "primary",
+              "danger"
+            ],
+            "default": "primary"
+          },
+          "label1": {
+            "type": "text",
+            "parent": "button",
+            "order": "a0",
+            "content": "확인",
+            "style.font-size": {
+              "value": 14,
+              "unit": "px"
+            }
+          },
+          "inst01": {
+            "type": "instance",
+            "parent": "sect01",
+            "order": "a2",
+            "component": "button"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "set",
+            "id": "box001",
+            "props": {
+              "hidden@var:tone01=danger": true
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "CONDITION_NOT_ALLOWED",
+          "opIndex": 0,
+          "id": "box001",
+          "key": "hidden@var:tone01=danger"
+        }
+      }
+    },
+    {
+      "name": "없는 옵션",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          },
+          "button": {
+            "type": "component",
+            "parent": null,
+            "order": "a1",
+            "name": "Button",
+            "tag": "button"
+          },
+          "tone01": {
+            "type": "componentProp",
+            "parent": "button",
+            "name": "tone",
+            "kind": "enum",
+            "options": [
+              "primary",
+              "danger"
+            ],
+            "default": "primary"
+          },
+          "label1": {
+            "type": "text",
+            "parent": "button",
+            "order": "a0",
+            "content": "확인",
+            "style.font-size": {
+              "value": 14,
+              "unit": "px"
+            }
+          },
+          "inst01": {
+            "type": "instance",
+            "parent": "sect01",
+            "order": "a2",
+            "component": "button"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "set",
+            "id": "label1",
+            "props": {
+              "hidden@var:tone01=ghost": true
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "CONDITION_TARGET_MISSING",
+          "opIndex": 0,
+          "id": "label1",
+          "key": "hidden@var:tone01=ghost"
+        }
+      }
+    },
+    {
+      "name": "enum이 아닌 componentProp의 options",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          },
+          "button": {
+            "type": "component",
+            "parent": null,
+            "order": "a1",
+            "name": "Button",
+            "tag": "button"
+          },
+          "tone01": {
+            "type": "componentProp",
+            "parent": "button",
+            "name": "tone",
+            "kind": "enum",
+            "options": [
+              "primary",
+              "danger"
+            ],
+            "default": "primary"
+          },
+          "label1": {
+            "type": "text",
+            "parent": "button",
+            "order": "a0",
+            "content": "확인",
+            "style.font-size": {
+              "value": 14,
+              "unit": "px"
+            }
+          },
+          "inst01": {
+            "type": "instance",
+            "parent": "sect01",
+            "order": "a2",
+            "component": "button"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "create",
+            "id": "icon01",
+            "type": "componentProp",
+            "parent": "button",
+            "props": {
+              "name": "icon",
+              "kind": "boolean",
+              "options": [
+                "a"
+              ],
+              "default": "a"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "VALUE_INVALID",
+          "opIndex": 0,
+          "id": "icon01",
+          "key": "options"
+        }
+      }
+    },
+    {
+      "name": "componentProp 이름 중복",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          },
+          "button": {
+            "type": "component",
+            "parent": null,
+            "order": "a1",
+            "name": "Button",
+            "tag": "button"
+          },
+          "tone01": {
+            "type": "componentProp",
+            "parent": "button",
+            "name": "tone",
+            "kind": "enum",
+            "options": [
+              "primary",
+              "danger"
+            ],
+            "default": "primary"
+          },
+          "label1": {
+            "type": "text",
+            "parent": "button",
+            "order": "a0",
+            "content": "확인",
+            "style.font-size": {
+              "value": 14,
+              "unit": "px"
+            }
+          },
+          "inst01": {
+            "type": "instance",
+            "parent": "sect01",
+            "order": "a2",
+            "component": "button"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "create",
+            "id": "tone02",
+            "type": "componentProp",
+            "parent": "button",
+            "props": {
+              "name": "tone",
+              "kind": "boolean",
+              "default": "true"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "NAME_CONFLICT",
+          "opIndex": 0,
+          "id": "tone02",
+          "key": "name"
+        }
+      }
+    },
+    {
+      "name": "인스턴스에서 바꿀 수 없는 키",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          },
+          "button": {
+            "type": "component",
+            "parent": null,
+            "order": "a1",
+            "name": "Button",
+            "tag": "button"
+          },
+          "tone01": {
+            "type": "componentProp",
+            "parent": "button",
+            "name": "tone",
+            "kind": "enum",
+            "options": [
+              "primary",
+              "danger"
+            ],
+            "default": "primary"
+          },
+          "label1": {
+            "type": "text",
+            "parent": "button",
+            "order": "a0",
+            "content": "확인",
+            "style.font-size": {
+              "value": 14,
+              "unit": "px"
+            }
+          },
+          "inst01": {
+            "type": "instance",
+            "parent": "sect01",
+            "order": "a2",
+            "component": "button"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "set",
+            "id": "inst01",
+            "props": {
+              "node.label1.style.font-size": {
+                "value": 9,
+                "unit": "px"
+              }
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "KEY_NOT_ALLOWED",
+          "opIndex": 0,
+          "id": "inst01",
+          "key": "node.label1.style.font-size"
+        }
+      }
+    },
+    {
+      "name": "없는 override 경로",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          },
+          "button": {
+            "type": "component",
+            "parent": null,
+            "order": "a1",
+            "name": "Button",
+            "tag": "button"
+          },
+          "tone01": {
+            "type": "componentProp",
+            "parent": "button",
+            "name": "tone",
+            "kind": "enum",
+            "options": [
+              "primary",
+              "danger"
+            ],
+            "default": "primary"
+          },
+          "label1": {
+            "type": "text",
+            "parent": "button",
+            "order": "a0",
+            "content": "확인",
+            "style.font-size": {
+              "value": 14,
+              "unit": "px"
+            }
+          },
+          "inst01": {
+            "type": "instance",
+            "parent": "sect01",
+            "order": "a2",
+            "component": "button"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "set",
+            "id": "inst01",
+            "props": {
+              "node.box001.content": "x"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "CONDITION_TARGET_MISSING",
+          "opIndex": 0,
+          "id": "inst01",
+          "key": "node.box001.content"
+        }
+      }
+    },
+    {
+      "name": "인스턴스 component 변경",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          },
+          "button": {
+            "type": "component",
+            "parent": null,
+            "order": "a1",
+            "name": "Button",
+            "tag": "button"
+          },
+          "tone01": {
+            "type": "componentProp",
+            "parent": "button",
+            "name": "tone",
+            "kind": "enum",
+            "options": [
+              "primary",
+              "danger"
+            ],
+            "default": "primary"
+          },
+          "label1": {
+            "type": "text",
+            "parent": "button",
+            "order": "a0",
+            "content": "확인",
+            "style.font-size": {
+              "value": 14,
+              "unit": "px"
+            }
+          },
+          "inst01": {
+            "type": "instance",
+            "parent": "sect01",
+            "order": "a2",
+            "component": "button"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "set",
+            "id": "inst01",
+            "props": {
+              "component": "button"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "TYPE_IMMUTABLE",
+          "opIndex": 0,
+          "id": "inst01",
+          "key": "component"
+        }
+      }
+    },
+    {
+      "name": "자기 자신을 포함하는 컴포넌트",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          },
+          "button": {
+            "type": "component",
+            "parent": null,
+            "order": "a1",
+            "name": "Button",
+            "tag": "button"
+          },
+          "tone01": {
+            "type": "componentProp",
+            "parent": "button",
+            "name": "tone",
+            "kind": "enum",
+            "options": [
+              "primary",
+              "danger"
+            ],
+            "default": "primary"
+          },
+          "label1": {
+            "type": "text",
+            "parent": "button",
+            "order": "a0",
+            "content": "확인",
+            "style.font-size": {
+              "value": 14,
+              "unit": "px"
+            }
+          },
+          "inst01": {
+            "type": "instance",
+            "parent": "sect01",
+            "order": "a2",
+            "component": "button"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "create",
+            "id": "inst02",
+            "type": "instance",
+            "parent": "button",
+            "placement": "last",
+            "props": {
+              "component": "button"
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "TREE_CYCLE",
+          "opIndex": 0,
+          "id": "inst02",
+          "key": "component"
+        }
+      }
+    },
+    {
+      "name": "쓰이는 컴포넌트 삭제",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          },
+          "button": {
+            "type": "component",
+            "parent": null,
+            "order": "a1",
+            "name": "Button",
+            "tag": "button"
+          },
+          "tone01": {
+            "type": "componentProp",
+            "parent": "button",
+            "name": "tone",
+            "kind": "enum",
+            "options": [
+              "primary",
+              "danger"
+            ],
+            "default": "primary"
+          },
+          "label1": {
+            "type": "text",
+            "parent": "button",
+            "order": "a0",
+            "content": "확인",
+            "style.font-size": {
+              "value": 14,
+              "unit": "px"
+            }
+          },
+          "inst01": {
+            "type": "instance",
+            "parent": "sect01",
+            "order": "a2",
+            "component": "button"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "delete",
+            "id": "button"
+          }
+        ]
+      },
+      "expect": {
+        "ok": false,
+        "error": {
+          "code": "COMPONENT_IN_USE",
+          "opIndex": 0,
+          "id": "button",
+          "key": null
+        }
+      }
+    },
+    {
+      "name": "옵션 삭제 시 변형 키와 인스턴스 값 정리",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          },
+          "button": {
+            "type": "component",
+            "parent": null,
+            "order": "a1",
+            "name": "Button",
+            "tag": "button"
+          },
+          "tone01": {
+            "type": "componentProp",
+            "parent": "button",
+            "name": "tone",
+            "kind": "enum",
+            "options": [
+              "primary",
+              "danger"
+            ],
+            "default": "primary"
+          },
+          "label1": {
+            "type": "text",
+            "parent": "button",
+            "order": "a0",
+            "content": "확인",
+            "style.font-size": {
+              "value": 14,
+              "unit": "px"
+            }
+          },
+          "inst01": {
+            "type": "instance",
+            "parent": "sect01",
+            "order": "a2",
+            "component": "button"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "set",
+            "id": "label1",
+            "props": {
+              "hidden@var:tone01=danger": true
+            }
+          },
+          {
+            "op": "set",
+            "id": "inst01",
+            "props": {
+              "props.tone01": "danger"
+            }
+          },
+          {
+            "op": "set",
+            "id": "tone01",
+            "props": {
+              "options": [
+                "primary",
+                "ghost"
+              ]
+            }
+          }
+        ]
+      },
+      "expect": {
+        "ok": true,
+        "doc": {
+          "schemaVersion": 1,
+          "objects": {
+            "frame1": {
+              "type": "frame",
+              "parent": null,
+              "order": "a0",
+              "name": "Home"
+            },
+            "sect01": {
+              "type": "section",
+              "parent": "frame1",
+              "order": "a0"
+            },
+            "box001": {
+              "type": "container",
+              "parent": "sect01",
+              "order": "a0"
+            },
+            "box002": {
+              "type": "container",
+              "parent": "box001",
+              "order": "a0"
+            },
+            "txt001": {
+              "type": "text",
+              "parent": "sect01",
+              "order": "a1",
+              "content": "hello"
+            },
+            "button": {
+              "type": "component",
+              "parent": null,
+              "order": "a1",
+              "name": "Button",
+              "tag": "button"
+            },
+            "tone01": {
+              "type": "componentProp",
+              "parent": "button",
+              "name": "tone",
+              "kind": "enum",
+              "options": [
+                "primary",
+                "ghost"
+              ],
+              "default": "primary"
+            },
+            "label1": {
+              "type": "text",
+              "parent": "button",
+              "order": "a0",
+              "content": "확인",
+              "style.font-size": {
+                "value": 14,
+                "unit": "px"
+              }
+            },
+            "inst01": {
+              "type": "instance",
+              "parent": "sect01",
+              "order": "a2",
+              "component": "button"
+            }
+          }
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "detach",
+      "doc": {
+        "schemaVersion": 1,
+        "objects": {
+          "frame1": {
+            "type": "frame",
+            "parent": null,
+            "order": "a0",
+            "name": "Home"
+          },
+          "sect01": {
+            "type": "section",
+            "parent": "frame1",
+            "order": "a0"
+          },
+          "box001": {
+            "type": "container",
+            "parent": "sect01",
+            "order": "a0"
+          },
+          "box002": {
+            "type": "container",
+            "parent": "box001",
+            "order": "a0"
+          },
+          "txt001": {
+            "type": "text",
+            "parent": "sect01",
+            "order": "a1",
+            "content": "hello"
+          },
+          "button": {
+            "type": "component",
+            "parent": null,
+            "order": "a1",
+            "name": "Button",
+            "tag": "button"
+          },
+          "tone01": {
+            "type": "componentProp",
+            "parent": "button",
+            "name": "tone",
+            "kind": "enum",
+            "options": [
+              "primary",
+              "danger"
+            ],
+            "default": "primary"
+          },
+          "label1": {
+            "type": "text",
+            "parent": "button",
+            "order": "a0",
+            "content": "확인",
+            "style.font-size": {
+              "value": 14,
+              "unit": "px"
+            }
+          },
+          "inst01": {
+            "type": "instance",
+            "parent": "sect01",
+            "order": "a2",
+            "component": "button"
+          }
+        }
+      },
+      "tx": {
+        "txId": "tx1",
+        "actor": "user:test",
+        "ops": [
+          {
+            "op": "set",
+            "id": "label1",
+            "props": {
+              "style.font-size@var:tone01=danger": {
+                "value": 20,
+                "unit": "px"
+              },
+              "style.color@state:hover": {
+                "colorSpace": "srgb",
+                "components": [
+                  1,
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          {
+            "op": "set",
+            "id": "inst01",
+            "props": {
+              "props.tone01": "danger",
+              "node.label1.content": "삭제",
+              "size.width": "fill"
+            }
+          },
+          {
+            "op": "detach",
+            "id": "inst01"
+          }
+        ]
+      },
+      "expect": {
+        "ok": true,
+        "doc": {
+          "schemaVersion": 1,
+          "objects": {
+            "frame1": {
+              "type": "frame",
+              "parent": null,
+              "order": "a0",
+              "name": "Home"
+            },
+            "sect01": {
+              "type": "section",
+              "parent": "frame1",
+              "order": "a0"
+            },
+            "box001": {
+              "type": "container",
+              "parent": "sect01",
+              "order": "a0"
+            },
+            "box002": {
+              "type": "container",
+              "parent": "box001",
+              "order": "a0"
+            },
+            "txt001": {
+              "type": "text",
+              "parent": "sect01",
+              "order": "a1",
+              "content": "hello"
+            },
+            "button": {
+              "type": "component",
+              "parent": null,
+              "order": "a1",
+              "name": "Button",
+              "tag": "button"
+            },
+            "tone01": {
+              "type": "componentProp",
+              "parent": "button",
+              "name": "tone",
+              "kind": "enum",
+              "options": [
+                "primary",
+                "danger"
+              ],
+              "default": "primary"
+            },
+            "label1": {
+              "type": "text",
+              "parent": "button",
+              "order": "a0",
+              "content": "확인",
+              "style.font-size": {
+                "value": 14,
+                "unit": "px"
+              },
+              "style.font-size@var:tone01=danger": {
+                "value": 20,
+                "unit": "px"
+              },
+              "style.color@state:hover": {
+                "colorSpace": "srgb",
+                "components": [
+                  1,
+                  0,
+                  0
+                ]
+              }
+            },
+            "YlaiJoMKLj8Dx4NbYBayt": {
+              "type": "container",
+              "parent": "sect01",
+              "order": "a2",
+              "name": "Button",
+              "tag": "button",
+              "size.width": "fill"
+            },
+            "fRQZpe50VURg1xexIH9dK": {
+              "type": "text",
+              "parent": "YlaiJoMKLj8Dx4NbYBayt",
+              "order": "a0",
+              "content": "삭제",
+              "style.font-size": {
+                "value": 20,
+                "unit": "px"
+              }
+            }
+          }
+        },
+        "warnings": []
+      }
+    }
+  ]
+}

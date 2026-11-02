@@ -43,7 +43,7 @@ Oct 31, 2026 · @Dex Kim
 | Q12 | AI 읽기 형식 | 주석 HTML 기본, 단계적으로 깊이 읽기 |
 | Q13 | 컴포넌트 | 원본 + 인스턴스 + 기본 변형(노드별 CSS 속성만) |
 | Q14 | Frame 렌더링 | Frame마다 iframe(`srcdoc`). 보드와 오버레이는 DOM |
-| Q15 | 기술 스택 | 편집기 TypeScript·React, 자체 WebSocket + 속성 단위 LWW, PostgreSQL. 서버는 TypeScript가 아닌 언어(Python)로 하고 계약은 JSON Schema·적합성 fixture로 공유한다 (2026-10-31 수정) |
+| Q15 | 기술 스택 | 편집기 TypeScript·React, 자체 WebSocket + 속성 단위 LWW, PostgreSQL. 서버는 TypeScript가 아닌 언어(Kotlin·Spring Boot)로 하고 계약은 JSON Schema·적합성 fixture로 공유한다 (2026-10-31 수정, 2026-11-02 서버 언어 확정) |
 | 추가 | 편집기 대상 브라우저 | 최신 Chrome(Chromium)만 |
 | Q16 | 출력 HTML 대상 | 범용 웹 기준(Baseline Widely available) |
 
@@ -219,7 +219,7 @@ AI는 MCP로 서버에 직접 접속해 편집기가 열려 있지 않아도 화
 | --- | --- |
 | `get_tree(frame, depth)` | 개요 읽기. Section과 주요 컨테이너만 |
 | `get_tree(node_id)` | 필요한 부분만 주석 HTML로 펼침 |
-| `get_tree(…, format: "json")` | override 목록 등 정밀한 속성이 필요할 때만 |
+| `get_tree(…, format: "json")` | 속성(스타일, 토큰 바인딩, override)이 필요할 때 |
 | `get_tokens` | 토큰 목록, 설명, 조합별 해석값 |
 | `get_components` | 컴포넌트, 속성, 변형 목록 |
 | `inspect(node_id, bp, screenshot?)` | 해당 BP에서 실제 계산된 박스 크기, 오버플로·잘림 경고. 스크린샷은 요청할 때만 |
@@ -228,12 +228,13 @@ AI는 MCP로 서버에 직접 접속해 편집기가 열려 있지 않아도 화
 **주석 HTML 읽기 형식**
 
 ```html
-<section data-id="n12" data-layout="flex col gap:{space.lg}">
-  <h2 data-id="n13" style="color:var(--color-text-primary)">요금제</h2>
+<section class="n-plans1" data-id="plans1" data-layout="flex-column">
+  <h2 class="n-title1" data-id="title1">요금제</h2>
 </section>
 ```
 
-AI는 HTML로 읽고, `data-id`로 대상을 지정해 `apply_ops`로 쓴다.
+주석 HTML은 구조만 담는다. `data-layout`은 `layout.mode` 값이며, 간격·색 같은 속성과 토큰 바인딩은 넣지 않는다.
+AI는 HTML로 구조를 읽고, 속성이 필요한 노드는 JSON으로 읽은 뒤, `data-id`로 대상을 지정해 `apply_ops`로 쓴다.
 
 **apply\_ops 원칙**
 
@@ -275,12 +276,12 @@ AI는 HTML로 읽고, `data-id`로 대상을 지정해 `apply_ops`로 쓴다.
 
 | 영역 | 선택 | 이유 |
 | --- | --- | --- |
-| 언어 | 편집기 TypeScript, 서버 Python | 스키마는 JSON Schema·적합성 fixture로 공유하고, 변환기는 서버가 헤드리스 Chromium에서 편집기 번들을 불러 쓴다 |
+| 언어 | 편집기 TypeScript, 서버 Kotlin | 스키마는 JSON Schema·적합성 fixture로 공유하고, 변환기는 서버가 헤드리스 Chromium에서 편집기 번들을 불러 쓴다 |
 | 편집기 UI | React | 패널, 레이어 트리, 토큰 표 등 일반 UI가 많고 생태계가 큼 |
 | Frame 렌더 | 공유 HTML 변환기 → `srcdoc` | 편집기, 내보내기, 서버 렌더가 같은 함수 호출 |
 | 실시간 동기화 | 자체 WebSocket 서버 + 속성 단위 LWW | 서버가 순서를 정하고 검증하여 위반 변경을 거부할 수 있음 |
-| 서버 | Python | 동기화, `apply_ops`, MCP를 한 프로세스로 시작, 부하에 따라 분리. Playwright·MCP 공식 SDK가 있다 |
-| AI 인터페이스 | MCP Python SDK, Streamable HTTP | 원격 AI 클라이언트의 표준 접속 방식 |
+| 서버 | Kotlin, Spring Boot | 동기화, `apply_ops`, MCP를 한 프로세스로 시작, 부하에 따라 분리. Playwright·MCP 공식 Java SDK가 있고, 회원 서버(auth-api)와 스택이 같다 |
+| AI 인터페이스 | Spring AI MCP Server(MCP Java SDK 기반), Streamable HTTP | 원격 AI 클라이언트의 표준 접속 방식 |
 | 헤드리스 렌더 | Playwright + Chromium | 편집기와 같은 엔진이라 `inspect` 결과가 일치 |
 | 저장소 | PostgreSQL | 노드 속성 테이블 + 연산 로그(변경 기록, AI 세션 Undo, 스냅샷의 근거) |
 

@@ -196,6 +196,10 @@ fabrics 업무 산출물이 아니라, 메타 저장소 자체의 운영을 보�
   대신 `tools/dev-env/devctl`로 상태를 확인하고(`ls`, `ports`, `logs`) 재시작한다.
   Slack 워커가 실행하는 `claude -p`는 최대 600초 뒤 종료되므로, 세션 안에서
   띄운 서버는 세션과 함께 정리되거나 출력 파이프를 붙잡아 응답을 타임아웃시킨다
+- 예외: 저장소의 `compose.yaml`로 띄우는 서비스(현재 stylist-web)는 devctl에
+  등록하지 않는다. 수명은 Docker의 `restart: unless-stopped` 정책이 관리하고, 세션은
+  `docker compose ps`/`logs`/`restart`로 확인·재시작한다. `docker compose up`은
+  `-d`로만 실행하고 포그라운드로 붙잡지 않는다. 포트 할당과 운영 caveat는 README가 원본이다
 - 서버와 작업은 `tools/dev-env/registry.json`에 등록한다. `KeepAlive`는 dev
   서버(`servers`)에만 켜고, 에뮬레이터 같은 작업(`tasks`)은 필요할 때 띄운다
 - **포트는 웹서비스마다 10개 단위 블록으로 할당한다**(3000–3009, 3010–3019 …).

@@ -73,14 +73,28 @@ tools/dev-env/devctl reverse            # 실행 중인 서버 포트 전체에 
 
 | 블록 | 서비스 |
 |---|---|
-| 3000–3009 | stylist-web |
-| 3010–3019 | 다음 서비스 |
+| 3000 | stylist-web (devctl 미등록. 저장소의 `compose.yaml`로 기동하며 zone 포트는 compose 네트워크 안에만 있다) |
+| 3001–3009 | 미할당 (stylist-web에서 해제) |
+| 3010–3019 | trama-web |
+| 3020–3029 | 다음 서비스 |
 
 - pocket이 어느 서비스를 띄울지는 pocket의 Debug 시작 URL(Android flavor, iOS xcconfig)로
   고른다. 다른 서비스를 탑재하려고 3000을 비울 필요가 없다
 - 그래도 포트를 옮겨야 하면 두 서비스의 `ports`와 `env`를 고치고 `devctl install`을
-  다시 실행한다. 프로젝트가 env로 포트를 받아야 한다. stylist-web은 현재
-  `package.json`에 포트가 고정되어 있으므로, 옮길 때 stylist-web 쪽에서 env 수신을 추가한다
+  다시 실행한다. 프로젝트가 env로 포트를 받아야 한다. stylist-web은 devctl이 아니라
+  `compose.yaml`로 기동하므로, 옮길 때 `compose.yaml` shell 서비스의 `ports` 호스트 쪽 값만 고친다
+
+## docker compose 서비스
+
+`compose.yaml`로 띄우는 서비스는 devctl이 아니라 Docker가 수명을 관리한다.
+
+- `docker compose down`·`stop`으로 멈춘 컨테이너는 `restart: unless-stopped` 정책상
+  다음 로그인 때 살아나지 않는다. 잠시 재시작할 때는 `docker compose restart`를 쓰고,
+  멈췄다면 `docker compose up -d`로 다시 띄운다
+- Docker 데몬이 컨테이너를 되살릴 때는 `depends_on` 순서를 지키지 않는다. 의존 서비스가
+  뜰 때까지 잠시 오류가 날 수 있다
+- 레지스트리에 없으므로 `devctl ports`가 이 서비스의 포트 점유를 중복으로 잡지 못한다.
+  포트를 고를 때 위 표를 함께 확인한다
 
 ## 서버 추가 절차
 
@@ -127,6 +141,8 @@ FileVault가 켜져 있으므로 재부팅하면 로그인 전까지 아무 agen
 
 1. 로그인한다. slack-worker와 `servers` 항목은 `RunAtLoad`로 자동 기동된다
 2. `tools/dev-env/devctl ls`로 서버가 `running`이고 포트가 `✓`인지 확인한다
+   docker compose 서비스(stylist-web)는 Docker Desktop 자동 시작과 `restart: unless-stopped`로
+   복구되므로, 해당 저장소에서 `docker compose ps`로 `running`인지 확인한다
 3. 필요하면 `devctl up android-emulator`를 실행한다
 
 ## 문제 해결

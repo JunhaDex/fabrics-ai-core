@@ -89,6 +89,14 @@ Slack: `C0C6MR046MV`
 ### 로컬 실행
 - `turbo dev`로 shell(3000), closet(3001), styling(3002)을 함께 띄운다. shell이 env의
   localhost 포트로 rewrite한다
+- `compose.yaml`로도 같은 구성을 dev(HMR) 모드로 띄운다. 호스트에는 shell(3000)만
+  공개하고, closet·styling은 compose 네트워크 안에서만 `http://closet:3001`,
+  `http://styling:3002`로 호출된다. 소스는 bind mount하고 node_modules는 linux용으로
+  named volume에 설치한다(`deps` 서비스, `GITHUB_TOKEN_PKG` 필요). 이 기기의 상시 dev 서버는
+  compose로 띄우며 devctl에서는 제거했다. 재부팅 후에는 Docker Desktop 자동 시작과
+  shell·closet·styling의 `restart: unless-stopped`로 복구된다
+- 호스트 포트 할당은 3000만 남기고 3001–3009는 해제했다. 운영 caveat는 dev-env README,
+  프로젝트 고유 caveat는 프로젝트 CLAUDE.md "상시 dev 서버"에 둔다
 - pocket은 shell(3000) 하나만 바라본다. `adb reverse` 사용 시 Host가 `localhost:3000`이라
   `allowedDevOrigins`를 설정하지 않는다 (`app-pocket-todo.md`와 동일)
 

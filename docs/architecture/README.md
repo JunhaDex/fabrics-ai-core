@@ -14,4 +14,5 @@
 | `app-pocket-webview-layout.md` | 웹뷰 edge-to-edge와 safe area 역할 분담 (네이티브 웹뷰 설정, 지원 WebView 버전, 검증 항목) | v0.1 |
 | `trama-document-model.md` | trama 문서 모델과 `apply_ops` 연산 계약 (객체·속성 키, override 키 문법, 검증 오류 코드) | v0.5. 8절(컴포넌트) 이후는 해당 버전에서 확정 |
 | `trama-html-conversion.md` | trama 문서 → HTML/CSS 변환 규칙 (출력 3종, 요소·CSS 규칙, sizing 대응) | v0.5. base·BP override·토큰 |
+| `trama-server-interface.md` | trama 서버가 편집기와 AI에 제공하는 인터페이스 (REST, WebSocket 동기화 메시지, MCP 도구) | 초안. 인증 제외 |
 | `trama-ops.schema.json`, `trama-ops-conformance/` | trama 연산 JSON Schema와 적합성 fixture. web 테스트가 생성 | v0.2 |

@@ -1,10 +1,10 @@
 {
   "servers": {
-    "stylist-web": {
-      "dir": "projects/stylist-web",
-      "command": ["pnpm", "exec", "turbo", "run", "dev", "--ui=stream"],
-      "ports": [3000, 3001, 3002],
-      "env": {}
+    "trama-web": {
+      "dir": "projects/trama-web",
+      "command": ["pnpm", "dev"],
+      "ports": [3010],
+      "env": { "PORT": "3010" }
     }
   },
   "tasks": {

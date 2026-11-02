@@ -5,7 +5,7 @@ trama 문서를 HTML/CSS로 바꾸는 규칙의 현행 명세다. 편집기(web)
 속성 키는 `trama-document-model.md`가 정본이다. 요구사항은 `../references/fabrics-tala-requirements.md`의
 "레이아웃 모델과 HTML 변환 규칙" 절이다.
 
-- 상태: v0.5. base 구간, BP override, 디자인 토큰을 다룬다. 컴포넌트, 스타일 허용 목록은 해당 버전에서 추가한다
+- 상태: v0.6. base 구간, BP override, 디자인 토큰, 컴포넌트와 인스턴스를 다룬다. 스타일 허용 목록은 해당 버전에서 추가한다
 - 검증: web 저장소의 golden 테스트(`src/render/__golden__/`)가 이 문서의 출력 형식을 바이트 단위로 고정한다
 
 ## 1. 변환 단계
@@ -14,7 +14,8 @@ trama 문서를 HTML/CSS로 바꾸는 규칙의 현행 명세다. 편집기(web)
 문서 ──build(doc, frameId)──▶ 중간 트리(Page) ──직렬화──▶ export | srcdoc | annotated
 ```
 
-- Frame 하나가 HTML 문서 하나다
+- Frame 하나가 HTML 문서 하나다. 편집기의 컴포넌트 보드는 컴포넌트 ID로 변환해 원본 하나를 `<body>` 안에 둔 문서를
+  만든다(5절 "보드 미리보기")
 - 중간 트리는 요소 트리와 CSS 규칙 목록이다. 세 출력이 같은 중간 트리에서 나온다
 - 변환은 순수 함수다. 같은 문서와 Frame ID는 항상 같은 바이트열을 만든다
 
@@ -27,11 +28,12 @@ trama 문서를 HTML/CSS로 바꾸는 규칙의 현행 명세다. 편집기(web)
 | `annotated` | AI 읽기 | `<body>` 마크업만, CSS 없음 | `class`, `data-id`, `data-layout` |
 
 - `data-id`는 노드 ID, `data-layout`은 레이아웃을 갖는 노드(frame, section, container)의 `layout.mode`다
-- 속성 순서는 `class`, (image의 `src`, `alt`), `data-id`, `data-layout`이다
+- 속성 순서는 `class`, (image의 `src`, `alt`), (컴포넌트 루트의 `data-<속성 이름>`, `data-trama-state`), `data-id`, `data-layout`이다
 - 편집기의 HTML 미리보기(코드 팝업)는 `export`와 같은 HTML에 `style.css` 대신 `<style>`을 인라인한 것이다
 - Frame이 아닌 노드를 선택하고 미리보기를 열면 코드 조각(snippet)을 보여준다. HTML은 그 노드(image가 `<picture>`면
-  `<picture>`째)와 하위 노드의 마크업이고 data 속성이 없다. CSS는 그 노드들의 `.n-<ID>` 규칙과 `@media` 안의 해당
-  규칙, 조각에 `<picture>`가 있으면 `picture` 규칙만 담는다. 리셋 규칙은 페이지 전체의 것이므로 담지 않는다
+  `<picture>`째)와 하위 노드의 마크업이고 `data-id`·`data-layout`이 없다. CSS는 조각 안 요소가 가진 클래스만으로
+  이루어진 규칙(`@media`·`@container` 안 포함), 조각에 `<picture>`가 있으면 `picture` 규칙, 토큰 규칙을 담는다.
+  리셋 규칙은 페이지 전체의 것이므로 담지 않는다
 
 HTML 문서의 고정 골격:
 
@@ -62,8 +64,14 @@ HTML 문서의 고정 골격:
 | container | `tag`, 기본 `div` | 자식 |
 | text | `tag`, 기본 `p` | `content`(이스케이프) |
 | image | `img` | 없음. `src`, `alt`는 없으면 빈 문자열 |
+| instance | 컴포넌트 `tag`, 기본 `div` | 원본 트리를 펼친 자식 |
 
 - 모든 요소는 `class="n-<노드 ID>"`를 가진다. 이름 변경은 출력에 영향을 주지 않는다
+- 인스턴스는 원본 루트 자리에 `class="c-<컴포넌트 ID> n-<인스턴스 ID>"`를 두고, 이어서 componentProp마다
+  `data-<속성 이름>="<값>"`을 정의 순서(이름순)로 붙인다. 값은 인스턴스의 `props.*`, 없으면 `default`다
+- 펼친 원본 노드는 원본의 `class="n-<노드 ID>"`를 그대로 쓴다. 같은 컴포넌트의 인스턴스가 여러 개여도 같은 클래스를
+  가지며 인스턴스 루트 클래스로 구분한다. override의 `content`, `src`, `alt`는 마크업 값에 반영한다
+- `data-id`는 펼친 요소에 `<인스턴스 ID>/<노드 ID>` 경로를 쓴다. 중첩 인스턴스는 `/`로 잇는다(예: `card02/cta001/label1`)
 - 자식 순서는 형제 정렬 규칙(`(order, id)` 사전순)을 따른다
 - 이스케이프: 텍스트는 `&`, `<`, `>`, 속성값은 여기에 `"`를 더한다
 - 들여쓰기는 깊이당 공백 2칸이다. 자식이 없는 요소와 text는 한 줄로 닫는다. `img`, `source`는 닫지 않는다
@@ -175,3 +183,43 @@ grid 부모. 기본 sizing은 두 축 모두 `fill`(셀을 채움)이다.
   - Color: `alpha`가 1이면 소문자 `#rrggbb`, 아니면 `rgb(R G B / A)`. 성분은 `round(c × 255)`다
   - 숫자: 앞의 숫자 규칙과 같다 (예: `font-weight: 700`)
   - 키워드: 그대로
+
+## 5. 컴포넌트
+
+### 규칙 순서
+- 토큰 `:root` 규칙 뒤, Frame 노드 규칙 앞에 컴포넌트 규칙을 낸다. 컴포넌트는 Frame 트리 순서로 처음 만나는 순서대로
+  한 번씩 내며, 원본 안의 중첩 인스턴스가 가리키는 컴포넌트를 먼저 낸다
+- 컴포넌트 하나의 규칙은 아래 순서다. 각 묶음 안에서는 원본 트리 전위 순회 순서다
+  1. base: 원본 루트는 `.c-<컴포넌트 ID>`, 그 밖의 노드는 `.n-<노드 ID>`. 원본 안 인스턴스는 자기 규칙 바로 뒤에
+     override 규칙을 둔다
+  2. 변형: componentProp 정의 순서(이름순), 옵션 순서로 `@var` 키가 있는 옵션마다
+     `.c-<컴포넌트 ID>[data-<속성 이름>="<옵션>"]`(루트) 또는 그 뒤에 ` .n-<노드 ID>`(하위 노드)
+  3. 상태: `hover`, `pressed`, `focus`, `disabled` 순서로 `.c-<컴포넌트 ID><의사 클래스>`. 대응은 `hover` → `:hover`,
+     `pressed` → `:active`, `focus` → `:focus-visible`, `disabled` → `[disabled]`
+  4. 변형과 상태의 조합(`@var:…@state:…`): 변형 순서 안에서 상태 순서로 `.c-<ID>[data-…="…"]<의사 클래스>`
+- 각 규칙에는 직전 상태와 달라진 선언만 담는다. 변형·상태의 직전 상태는 base이고, 조합의 직전 상태는 base에 그 변형과
+  그 상태를 차례로 덮은 것이다. 없어진 선언은 BP와 같이 `revert`로 낸다
+- 원본 노드의 sizing은 원본 부모를 기준으로 계산한다. 원본 루트는 부모가 없으므로 자식 배치 선언을 내지 않는다
+
+### 인스턴스
+- 인스턴스 자신의 공통·배치 키(`size.*`, `hidden`, `@bp` 키 등)는 Frame 노드와 같이 `.n-<인스턴스 ID>` 규칙과 BP
+  `@media` 블록으로 낸다
+- override 중 CSS로 나가는 값(`hidden`, 토큰 바인딩)은 그 인스턴스 규칙 바로 뒤에 경로 사전순으로 낸다. 선택자는
+  `.n-<인스턴스 ID>`에 경로 구간마다 ` .n-<ID>`를 이은 것이고, 경로가 원본 루트를 가리키면 `.n-<인스턴스 ID>`만이다.
+  선언은 원본 base 상태와 override를 적용한 상태의 차이다
+- override 규칙은 클래스 하나 또는 자손 조합이라 변형·상태 규칙보다 우선순위가 낮거나 같고, 앞에 나오므로 변형·상태
+  값이 이긴다
+
+### 컨테이너 쿼리 (`@cq`)
+- 원본에 `@cq` 키가 하나라도 있으면 원본 루트 규칙에 `container-name: c-<컴포넌트 ID>`, `container-type: inline-size`를
+  더한다
+- BP `@media` 블록 뒤에 컴포넌트마다 `@cq` 값의 오름차순으로 `@container c-<컴포넌트 ID> (min-width: {N}px) { … }`를
+  낸다. 블록 안 규칙은 `.n-<노드 ID>`이며, 직전 값까지 덮은 상태와 달라진 선언만 담는다
+
+### 보드 미리보기
+- 컴포넌트 ID로 변환하면 원본 루트를 `<body>`의 유일한 자식으로 두고, 클래스는 `c-<컴포넌트 ID>`만 쓴다
+- 편집기가 고른 속성 값을 `data-*`로, 고른 상태를 `data-trama-state="<상태>"`로 루트에 붙인다. 이때 상태 선택자는
+  `:is(<의사 클래스>, [data-trama-state="<상태>"])`로 내 실제 상호작용 없이도 상태를 보여준다. 내보내기 출력에는 쓰지 않는다
+
+### 코드 조각
+- 인스턴스를 선택하면 2절의 조각 규칙에 따라 그 컴포넌트 규칙과 그 인스턴스의 override 규칙이 함께 담긴다

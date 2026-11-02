@@ -21,12 +21,14 @@ Slack: `C0CDK58U22F`
 ### 단계 구분
 - 1단계(web): 편집기만 만든다. 서버, 동시 편집, MCP, 헤드리스 렌더, PostgreSQL, 인프라는 만들지 않는다
 - 2단계(server, infra): 동기화 서버, `apply_ops`·MCP 엔드포인트, Playwright 헤드리스 렌더, PostgreSQL,
-  terraform. 1단계가 끝나면 착수한다
+  terraform. 서버는 trama-api 프로젝트가 맡고, web은 서버 연동(`RemoteSource`, presence, 변경 기록 패널)을 맡는다
 
 ### 저장소 구조
 - 구성 요소마다 저장소를 나눈다. 서버의 언어가 달라 한 저장소에 담으면 복잡도만 높아지고 코드 공유의 이점이 없기 때문이다
-  - web: `fabrics-trama-web`, `projects/trama-web/` (1단계)
-  - server, infra: 2단계에 만든다
+- 구성 요소는 각각 독립 프로젝트로 관리한다. 저장소, Slack 채널, todo 파일을 따로 두며 컨테이너 디렉터리(ADR 0005)를 쓰지 않는다(2026-11-03)
+  - web: `fabrics-trama-web`, `projects/trama-web/`, 이 파일
+  - server: `fabrics-trama-api`, `projects/trama-api/`, `docs/trama-api-todo.md`
+  - infra: 미정
 - 저장소 사이의 계약(문서 모델, 연산 스키마, 오류 코드, 출력 CSS 허용 목록)은 메타 저장소
   `docs/architecture/`에 둔다. app-pocket 브릿지 계약과 같은 방식이다
 
@@ -39,6 +41,8 @@ Slack: `C0CDK58U22F`
 - 디렉터리는 `src/model`(스키마, 연산 검증·적용), `src/render`(HTML/CSS 변환기), 편집기 UI(`src/app`,
   `src/editor`)로 나눈다. 의존 방향은 편집기 → render → model이고, render와 model은 DOM·React·Next에
   의존하지 않는다
+- 로컬 dev 서버는 `tools/dev-env`에 `trama-web`으로 등록하고 포트 블록 3010–3019 중 3010을 쓴다. 포트는
+  `package.json`에 고정하지 않고 레지스트리 env `PORT`로 넘긴다
 - 서버가 헤드리스 Chromium에서 불러 쓸 단독 ESM 번들 `render.js`는 Next 빌드와 별도로 tsdown으로
   만든다(common-design과 같은 번들러). 2단계 착수 시 추가한다 (제안, 승인 대기)
 
@@ -95,29 +99,27 @@ Slack: `C0CDK58U22F`
 - 텍스트 인라인 서식은 1단계에서 서식 없는 문자열이다. 도입 시 `[{ text, marks }]` 구간 배열로 하고 marks는 `strong`, `em`, `a`로 제한한다
 - 자산은 `asset` 객체(mime, name, 크기)로 두고 ID는 내용 SHA-256 해시로 한다. 1단계 저장은 IndexedDB blob, 출력 경로는 `assets/<해시>.<확장자>`, image `src`는 URL 문자열 또는 `{ asset }`이다
 - `margin`은 허용하지 않는다. grid 트랙 크기는 `layout.columns`가 트랙 크기 배열(`fr`·`px`·`auto`)도 받도록 확장한다(필요 시)
-- 서버 언어는 Python이다(Playwright와 MCP 공식 SDK). 2단계 착수 시 다시 확인한다
-- 2단계 저장소는 ADR 0005의 컨테이너 디렉터리 방식(`projects/trama/` 아래 `web/`·`server/`·`infra/`, todo·Slack 채널 하나)으로 등록하며, 2단계 착수 시 경로를 옮긴다
 
 ### 설계 문서 위치
 - 노드 모델·연산 스키마와 HTML 변환 규칙은 `docs/architecture/trama-document-model.md`,
   `docs/architecture/trama-html-conversion.md`에 현행 명세로 둔다. 다른 언어로 만드는 서버와 외부 AI(MCP)가
   같은 계약을 따르기 때문이다. 기계 판독용 계약 파일(JSON Schema, 적합성 fixture, CSS 허용 목록)도 같은 폴더에 둔다
+- 서버 인터페이스(REST, WebSocket 동기화, MCP 도구)는 `docs/architecture/trama-server-interface.md`에 둔다.
+  서버 쪽 결정은 `docs/trama-api-todo.md`가 담고, web은 이 문서의 WebSocket 메시지로 `RemoteSource`를 구현한다
 
 ## 진행 중
 
-_(현재 없음. 다음 착수 대상은 v0.6)_
+_(현재 없음. 1단계 계획 버전을 모두 마쳤다)_
 
 ## 다음 버전 (계획)
 
-1단계(web)
-- v0.6 컴포넌트: 원본·인스턴스·변형·상태, `.c-*` 클래스와 `data-*` 선택자 출력
-
-2단계(server, infra). 버전 번호는 1단계를 마칠 때 정한다
-- 동기화 서버: WebSocket, 속성 단위 LWW, presence, 연산 로그, PostgreSQL, `RemoteSource`
-- AI: MCP(Streamable HTTP) 도구, Playwright 헤드리스 렌더와 `inspect`, AI 세션 스냅샷과 변경 기록 패널
-- 인프라: terraform
+2단계 web 쪽. 서버는 `docs/trama-api-todo.md`
+- v0.7: 서버가 헤드리스 Chromium에서 불러 쓸 단독 ESM 번들 `render.js`(tsdown)
+- `RemoteSource`(WebSocket 동기화, 낙관적 반영과 `reject` 롤백), 서버 기반 Undo·Redo, presence
+- AI presence와 "AI 작업 중" 배지, 변경 기록 패널(항목 단위 되돌리기), 스냅샷 목록·복원
 
 ## 완료
+- v0.6 (2026-11-02) 컴포넌트: `component`·`componentProp`·`instance`, `@cq`·`@var`·`@state` 조건 키, 인스턴스 override(중첩 경로 `/`), `detach`(SHA-256 기반 결정적 21자 ID), `COMPONENT_IN_USE`, `.c-<ID>` 루트 클래스·`data-*` 변형 선택자·상태 의사 클래스·`@container` 출력, 컴포넌트 보드(변형·상태 미리보기)·인스턴스 패널·연결 해제·컴포넌트로 만들기. 구현 결정: componentProp 정의 순서는 이름순, `@cq`는 다른 조건과 조합 불가, 다른 루트로 옮기면 조건 키 전부 삭제, override는 원본 base 값을 대신함. JSON 열기 복원은 브라우저 미검증
 - v0.5 (2026-11-01) 디자인 토큰: `modifier`·`token`과 노드 토큰 바인딩(검증: 타입, 모든 조합의 순환, 사용 중, 이름), `:root`·`:root[data-*]`·`prefers-color-scheme` CSS 출력과 `var()` 참조 유지, 토큰 표 편집기·modifier 미리보기·조합 미리보기·OKLCH 램프·컨텍스트 복제, DTCG 2025.10 내보내기·가져오기. 구현 결정: `_mode`는 저장하지 않는 가상 객체, 토큰 이름 구간은 영숫자, modifier 속성은 `<html>`, `style.font-family`는 토큰 바인딩 전용
 - v0.4 (2026-10-31) 반응형과 오버플로: `breakpoint`와 `@bp` override(검증·정리), BP별 `@media`(`revert`)·`<picture>` 출력, Frame별 BP 탭과 override 편집(현재 BP는 미리보기 폭으로 결정, 폭 변화 시 오른쪽 Frame 이동), 오버플로 표시(fold, minWidth 점선, 넘침 아웃라인, clip 배지, BP 숨김), SVG 스냅샷 가상화, 선택 노드 코드 조각 미리보기
 - v0.3 (2026-10-31) 작업 영역: `LocalSource`(Undo·Redo, IndexedDB), 보드 팬/줌과 Frame별 `srcdoc` iframe, 역변환 선택, 레이어 트리·속성 패널, 캔버스 드래그앤드롭, 기본 스타일 키(배경·글자·padding·border), HTML 미리보기 팝업(shiki)과 문서 JSON 저장·열기. 폴더 내보내기는 브라우저 보안 제약으로 미리보기로 대체

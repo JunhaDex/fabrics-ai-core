@@ -104,7 +104,7 @@
             "id": "box002"
           },
           {
-            "op": "detach",
+            "op": "rename",
             "id": "box001"
           }
         ]
